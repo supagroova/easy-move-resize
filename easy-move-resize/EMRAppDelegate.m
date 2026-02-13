@@ -320,6 +320,13 @@ CGEventRef myCGEventCallback(CGEventTapProxy __unused proxy, CGEventType type, C
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
+    // Skip the entire accessibility check when running under XCTest.
+    // AXIsProcessTrustedWithOptions with kAXTrustedCheckOptionPrompt triggers
+    // a system modal dialog, which blocks the test runner.
+    if (NSClassFromString(@"XCTestCase") != nil) {
+        return;
+    }
+
     const void * keys[] = { kAXTrustedCheckOptionPrompt };
     const void * values[] = { kCFBooleanTrue };
 
@@ -333,11 +340,7 @@ CGEventRef myCGEventCallback(CGEventTapProxy __unused proxy, CGEventType type, C
 
     if (!AXIsProcessTrustedWithOptions(options)) {
         NSLog(@"Missing permissions");
-        // Skip exit during unit tests so the test runner can bootstrap
-        if (NSClassFromString(@"XCTestCase") == nil) {
-            exit(1);
-        }
-        return;
+        exit(1);
     }
 
     [self buildMenu];

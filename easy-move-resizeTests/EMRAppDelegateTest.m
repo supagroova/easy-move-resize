@@ -317,17 +317,9 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     CFRelease(event);
 }
 
-#pragma mark - Callback: event tap re-enable
-
-- (void)testCallbackReEnablesEventTapOnTimeout {
-    // The callback should re-enable the event tap when receiving kCGEventTapDisabledByTimeout
-    // We can't fully test this without a real event tap, but we can verify it doesn't crash
-    // and returns the event
-    CGEventRef event = CGEventCreate(NULL);
-    CGEventRef result = myCGEventCallback(NULL, kCGEventTapDisabledByTimeout, event, (__bridge void *)delegate);
-    XCTAssertEqual(result, event, "Should return event after re-enabling tap");
-    CFRelease(event);
-}
+// Note: kCGEventTapDisabledByTimeout handling cannot be tested without a real event tap,
+// as the callback calls CGEventTapEnable([EMRMoveResize instance].eventTap, true)
+// which crashes on a NULL event tap reference.
 
 #pragma mark - Callback: conflict resolution (both match → resize wins)
 
@@ -396,17 +388,17 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     [self setCachedMoveButton:EMRMouseButtonLeft];
     [self setCachedResizeButton:EMRMouseButtonLeft];
 
-    // Send left-click with Cmd+Alt — should match resize only
+    // Send left-click with Cmd+Alt — should match resize only.
+    // In test env: resize path enters AX size query which fails on NULL window,
+    // clearing tracking to 0 and returning NULL. This confirms the resize path was chosen.
+    // (If move had been chosen, tracking would remain > 0 since move doesn't query size.)
     CGEventFlags resizeFlags = kCGEventFlagMaskCommand | kCGEventFlagMaskAlternate;
     CGEventRef event = [self createMouseEvent:kCGEventLeftMouseDown flags:resizeFlags];
-    myCGEventCallback(NULL, kCGEventLeftMouseDown, event, (__bridge void *)delegate);
+    CGEventRef result = myCGEventCallback(NULL, kCGEventLeftMouseDown, event, (__bridge void *)delegate);
 
-    // The resize path was entered (AX size query runs and fails in test env, clearing tracking).
-    // If no match had occurred, tracking would remain 0 from setUp and the event would pass through.
-    // By verifying the event was consumed (NULL return) and tracking is 0 (resize path cleanup),
-    // we confirm the resize modifiers matched.
     EMRMoveResize *mr = [EMRMoveResize instance];
-    XCTAssertEqual([mr tracking], 0, "Resize path AX failure should have cleared tracking, confirming resize modifiers matched");
+    XCTAssertTrue(result == NULL, "Resize-matching event should be consumed (not passed through)");
+    XCTAssertEqual([mr tracking], 0, "Resize path AX failure clears tracking, confirming resize was chosen");
 
     [mr setIsResizing:NO];
     CFRelease(event);
@@ -492,11 +484,12 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
 
     // Middle-click should match resize.
     // The resize path enters AX size query which fails in test env, clearing tracking.
-    // We confirm the resize path was chosen by checking tracking == 0 (cleanup ran).
+    // We confirm the resize path was chosen by checking return value is NULL and tracking == 0.
     CGEventRef middleEvent = [self createMouseEvent:kCGEventOtherMouseDown flags:flags];
-    myCGEventCallback(NULL, kCGEventOtherMouseDown, middleEvent, (__bridge void *)delegate);
+    CGEventRef middleResult = myCGEventCallback(NULL, kCGEventOtherMouseDown, middleEvent, (__bridge void *)delegate);
 
-    XCTAssertEqual([mr tracking], 0, "Resize path AX failure should have cleared tracking, confirming middle-click matched resize");
+    XCTAssertTrue(middleResult == NULL, "Middle-click resize event should be consumed");
+    XCTAssertEqual([mr tracking], 0, "Resize path AX failure clears tracking, confirming middle-click matched resize");
 
     [mr setIsResizing:NO];
     CFRelease(leftEvent);

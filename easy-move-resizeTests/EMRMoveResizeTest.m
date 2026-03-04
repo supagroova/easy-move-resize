@@ -162,4 +162,69 @@
     XCTAssertFalse([mr isResizing]);
 }
 
+#pragma mark - isHoverActive property
+
+- (void)testIsHoverActiveDefaultsToNO {
+    EMRMoveResize *mr = [EMRMoveResize instance];
+    XCTAssertFalse([mr isHoverActive], "isHoverActive should default to NO");
+}
+
+- (void)testSetIsHoverActiveToYES {
+    EMRMoveResize *mr = [EMRMoveResize instance];
+    [mr setIsHoverActive:YES];
+    XCTAssertTrue([mr isHoverActive], "isHoverActive should be YES after setting");
+    [mr setIsHoverActive:NO];
+}
+
+- (void)testSetIsHoverActiveBackToNO {
+    EMRMoveResize *mr = [EMRMoveResize instance];
+    [mr setIsHoverActive:YES];
+    [mr setIsHoverActive:NO];
+    XCTAssertFalse([mr isHoverActive], "isHoverActive should be NO after clearing");
+}
+
+#pragma mark - Hover mode state lifecycle
+
+- (void)testHoverMoveLifecycle {
+    EMRMoveResize *mr = [EMRMoveResize instance];
+
+    // Activate hover move
+    [mr setTracking:CACurrentMediaTime()];
+    [mr setIsResizing:NO];
+    [mr setIsHoverActive:YES];
+    XCTAssertTrue([mr tracking] > 0);
+    XCTAssertFalse([mr isResizing]);
+    XCTAssertTrue([mr isHoverActive]);
+
+    // Deactivate on modifier release
+    [mr setIsHoverActive:NO];
+    [mr setTracking:0];
+    XCTAssertEqual([mr tracking], 0);
+    XCTAssertFalse([mr isHoverActive]);
+}
+
+- (void)testHoverResizeLifecycle {
+    EMRMoveResize *mr = [EMRMoveResize instance];
+
+    // Activate hover resize
+    [mr setTracking:CACurrentMediaTime()];
+    [mr setIsResizing:YES];
+    [mr setIsHoverActive:YES];
+    struct ResizeSection section = { .xResizeDirection = right, .yResizeDirection = bottom };
+    [mr setResizeSection:section];
+    [mr setWndPosition:NSMakePoint(50, 50)];
+    [mr setWndSize:NSMakeSize(400, 300)];
+
+    XCTAssertTrue([mr isHoverActive]);
+    XCTAssertTrue([mr isResizing]);
+
+    // Deactivate
+    [mr setIsHoverActive:NO];
+    [mr setTracking:0];
+    [mr setIsResizing:NO];
+    XCTAssertFalse([mr isHoverActive]);
+    XCTAssertEqual([mr tracking], 0);
+    XCTAssertFalse([mr isResizing]);
+}
+
 @end

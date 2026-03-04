@@ -6,6 +6,124 @@
     kCGEventFlagMaskAlphaShift | kCGEventFlagMaskAlternate | \
     kCGEventFlagMaskControl | kCGEventFlagMaskSecondaryFn)
 
+// Forward-declare methods used by the static helper before @implementation
+@interface EMRAppDelegate (HelperForwardDecl)
+- (NSDictionary *)getDisabledApps;
+- (void)setMostRecentApp:(NSRunningApplication *)app;
+- (BOOL)shouldBringWindowToFront;
+@end
+
+/* Capture the window at the given screen point via the Accessibility API.
+ * Sets wndPosition (and optionally wndSize + resizeSection for resize) on EMRMoveResize.
+ * Returns YES if a window was captured, NO if no valid window was found (e.g. desktop,
+ * disabled app, or AX failure). */
+static BOOL captureWindowAtPoint(CGPoint mouseLocation, EMRAppDelegate *ourDelegate, BOOL forResize) {
+    EMRMoveResize *moveResize = [EMRMoveResize instance];
+
+    AXUIElementRef _systemWideElement = AXUIElementCreateSystemWide();
+    AXUIElementRef _clickedWindow = NULL;
+
+    AXUIElementRef _element;
+    if ((AXUIElementCopyElementAtPosition(_systemWideElement, (float)mouseLocation.x, (float)mouseLocation.y, &_element) == kAXErrorSuccess) && _element) {
+        CFTypeRef _role;
+        if (AXUIElementCopyAttributeValue(_element, (__bridge CFStringRef)NSAccessibilityRoleAttribute, &_role) == kAXErrorSuccess) {
+            if ([(__bridge NSString *)_role isEqualToString:NSAccessibilityWindowRole]) {
+                _clickedWindow = _element;
+            }
+            if (_role != NULL) CFRelease(_role);
+        }
+        CFTypeRef _window;
+        if (AXUIElementCopyAttributeValue(_element, (__bridge CFStringRef)NSAccessibilityWindowAttribute, &_window) == kAXErrorSuccess) {
+            if (_element != NULL) CFRelease(_element);
+            _clickedWindow = (AXUIElementRef)_window;
+        }
+    }
+    CFRelease(_systemWideElement);
+
+    if (_clickedWindow == NULL) return NO;
+
+    // Disabled app check
+    pid_t PID;
+    NSRunningApplication *app = nil;
+    if (!AXUIElementGetPid(_clickedWindow, &PID)) {
+        app = [NSRunningApplication runningApplicationWithProcessIdentifier:PID];
+        if ([[ourDelegate getDisabledApps] objectForKey:[app bundleIdentifier]] != nil) {
+            CFRelease(_clickedWindow);
+            return NO;
+        }
+        [ourDelegate setMostRecentApp:app];
+    }
+
+    // Bring to front
+    if ([ourDelegate shouldBringWindowToFront]) {
+        if (app != nil) {
+            [app activateWithOptions:NSApplicationActivateIgnoringOtherApps];
+        }
+        AXUIElementPerformAction(_clickedWindow, kAXRaiseAction);
+    }
+
+    // Capture position
+    CFTypeRef _cPosition = nil;
+    NSPoint cTopLeft;
+    if (AXUIElementCopyAttributeValue((AXUIElementRef)_clickedWindow, (__bridge CFStringRef)NSAccessibilityPositionAttribute, &_cPosition) == kAXErrorSuccess) {
+        if (!AXValueGetValue(_cPosition, kAXValueCGPointType, (void *)&cTopLeft)) {
+            NSLog(@"ERROR: Could not decode position");
+            cTopLeft = NSMakePoint(0, 0);
+        }
+        CFRelease(_cPosition);
+    }
+
+    cTopLeft.x = (int)cTopLeft.x;
+    cTopLeft.y = (int)cTopLeft.y;
+
+    [moveResize setWndPosition:cTopLeft];
+    [moveResize setWindow:_clickedWindow];
+
+    // Capture size and compute resize section if needed
+    if (forResize) {
+        struct ResizeSection resizeSection;
+        CGPoint clickPoint = mouseLocation;
+        clickPoint.x -= cTopLeft.x;
+        clickPoint.y -= cTopLeft.y;
+
+        CFTypeRef _cSize;
+        NSSize cSize;
+        if (!(AXUIElementCopyAttributeValue((AXUIElementRef)_clickedWindow, (__bridge CFStringRef)NSAccessibilitySizeAttribute, &_cSize) == kAXErrorSuccess)
+                || !AXValueGetValue(_cSize, kAXValueCGSizeType, (void *)&cSize)) {
+            NSLog(@"ERROR: Could not decode size");
+            CFRelease(_clickedWindow);
+            [moveResize setTracking:0];
+            [moveResize setIsResizing:NO];
+            return NO;
+        }
+        CFRelease(_cSize);
+
+        NSSize wndSize = cSize;
+
+        if (clickPoint.x < wndSize.width / 3) {
+            resizeSection.xResizeDirection = left;
+        } else if (clickPoint.x > 2 * wndSize.width / 3) {
+            resizeSection.xResizeDirection = right;
+        } else {
+            resizeSection.xResizeDirection = noX;
+        }
+
+        if (clickPoint.y < wndSize.height / 3) {
+            resizeSection.yResizeDirection = bottom;
+        } else if (clickPoint.y > 2 * wndSize.height / 3) {
+            resizeSection.yResizeDirection = top;
+        } else {
+            resizeSection.yResizeDirection = noY;
+        }
+
+        [moveResize setWndSize:wndSize];
+        [moveResize setResizeSection:resizeSection];
+    }
+
+    CFRelease(_clickedWindow);
+    return YES;
+}
+
 /* Return the minimum refresh interval (1/refresh rate) across all screens. If the user
  * is on a version of MacOS < 12.0 then 60hz refresh rate is assumed. */
 float getMinRefreshInterval(void) {
@@ -42,6 +160,56 @@ float getMinRefreshInterval(void) {
     cachedMoveMouseButton = [preferences moveMouseButton];
     cachedResizeMouseButton = [preferences resizeMouseButton];
     cachedHasConflict = [preferences hasConflictingConfig];
+    cachedHoverModeEnabled = [preferences hoverModeEnabled];
+}
+
+- (CGEventMask)eventMaskForCurrentPreferences {
+    // Note: kCGEventTapDisabledByTimeout/ByUserInput are always delivered to
+    // event taps regardless of mask, so no need to include them here.
+    CGEventMask eventMask = CGEventMaskBit(kCGEventLeftMouseDown)
+        | CGEventMaskBit(kCGEventRightMouseDown)
+        | CGEventMaskBit(kCGEventOtherMouseDown)
+        | CGEventMaskBit(kCGEventLeftMouseDragged)
+        | CGEventMaskBit(kCGEventRightMouseDragged)
+        | CGEventMaskBit(kCGEventOtherMouseDragged)
+        | CGEventMaskBit(kCGEventLeftMouseUp)
+        | CGEventMaskBit(kCGEventRightMouseUp)
+        | CGEventMaskBit(kCGEventOtherMouseUp);
+
+    if ([preferences hoverModeEnabled]) {
+        eventMask |= CGEventMaskBit(kCGEventFlagsChanged)
+                   | CGEventMaskBit(kCGEventMouseMoved);
+    }
+
+    return eventMask;
+}
+
+- (void)recreateEventTap {
+    EMRMoveResize *moveResize = [EMRMoveResize instance];
+
+    // Tear down existing tap
+    if ([moveResize eventTap] != NULL) {
+        [self disableRunLoopSource:moveResize];
+    }
+
+    // Create new tap with updated mask
+    CGEventMask eventMask = [self eventMaskForCurrentPreferences];
+    CFMachPortRef eventTap = CGEventTapCreate(kCGHIDEventTap,
+                                              kCGHeadInsertEventTap,
+                                              kCGEventTapOptionDefault,
+                                              eventMask,
+                                              myCGEventCallback,
+                                              (__bridge void * _Nullable)self);
+    if (!eventTap) {
+        NSLog(@"Couldn't recreate event tap!");
+        return;
+    }
+
+    CFRunLoopSourceRef runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0);
+    [moveResize setEventTap:eventTap];
+    [moveResize setRunLoopSource:runLoopSource];
+    [self enableRunLoopSource:moveResize];
+    CFRelease(runLoopSource);
 }
 
 #pragma mark - Event callback
@@ -89,6 +257,107 @@ CGEventRef myCGEventCallback(CGEventTapProxy __unused proxy, CGEventType type, C
         resizeModifiersMatch = !(flags & resizeIgnored);
     }
 
+    // --- HOVER MODE: handle modifier activation/deactivation ---
+    if (type == kCGEventFlagsChanged) {
+        // Determine if modifiers now match resize or move (prefer resize on conflict)
+        BOOL shouldActivateResize = resizeModifiersMatch;
+        BOOL shouldActivateMove = moveModifiersMatch && !resizeOnly;
+        if (shouldActivateResize && shouldActivateMove) {
+            shouldActivateMove = NO; // conflict resolution: prefer resize
+        }
+
+        if ((shouldActivateResize || shouldActivateMove) && ![moveResize isHoverActive]) {
+            // --- HOVER ACTIVATION ---
+            CGPoint mouseLocation = CGEventGetLocation(event);
+            BOOL forResize = shouldActivateResize;
+
+            [moveResize setTracking:CACurrentMediaTime()];
+            [moveResize setIsResizing:forResize];
+
+            if (!captureWindowAtPoint(mouseLocation, ourDelegate, forResize)) {
+                [moveResize setTracking:0];
+                [moveResize setIsResizing:NO];
+                return event;
+            }
+
+            [moveResize setIsHoverActive:YES];
+        }
+        else if (!shouldActivateResize && !shouldActivateMove && [moveResize isHoverActive]) {
+            // --- HOVER DEACTIVATION ---
+            [moveResize setIsHoverActive:NO];
+            [moveResize setTracking:0];
+            [moveResize setIsResizing:NO];
+        }
+
+        return event; // never swallow modifier events
+    }
+
+    // --- HOVER MODE: handle mouse movement without click ---
+    if (type == kCGEventMouseMoved) {
+        if (![moveResize isHoverActive] || [moveResize tracking] == 0) {
+            return event;
+        }
+
+        if ([moveResize isResizing]) {
+            // Hover resize — same logic as drag resize
+            AXUIElementRef _hoverWindow = [moveResize window];
+            struct ResizeSection resizeSection = [moveResize resizeSection];
+            int deltaX = (int)CGEventGetDoubleValueField(event, kCGMouseEventDeltaX);
+            int deltaY = (int)CGEventGetDoubleValueField(event, kCGMouseEventDeltaY);
+
+            NSPoint cTopLeft = [moveResize wndPosition];
+            NSSize wndSize = [moveResize wndSize];
+
+            switch (resizeSection.xResizeDirection) {
+                case right: wndSize.width += deltaX; break;
+                case left:  wndSize.width -= deltaX; cTopLeft.x += deltaX; break;
+                case noX:   break;
+                default: break;
+            }
+            switch (resizeSection.yResizeDirection) {
+                case top:    wndSize.height += deltaY; break;
+                case bottom: wndSize.height -= deltaY; cTopLeft.y += deltaY; break;
+                case noY:    break;
+                default: break;
+            }
+
+            [moveResize setWndPosition:cTopLeft];
+            [moveResize setWndSize:wndSize];
+
+            if (CACurrentMediaTime() - [moveResize tracking] > ourDelegate.resizeFilterInterval) {
+                if (resizeSection.xResizeDirection == left || resizeSection.yResizeDirection == bottom) {
+                    CFTypeRef _position = (CFTypeRef)(AXValueCreate(kAXValueCGPointType, (const void *)&cTopLeft));
+                    AXUIElementSetAttributeValue(_hoverWindow, (__bridge CFStringRef)NSAccessibilityPositionAttribute, (CFTypeRef *)_position);
+                    CFRelease(_position);
+                }
+                CFTypeRef _size = (CFTypeRef)(AXValueCreate(kAXValueCGSizeType, (const void *)&wndSize));
+                AXUIElementSetAttributeValue(_hoverWindow, (__bridge CFStringRef)NSAccessibilitySizeAttribute, (CFTypeRef *)_size);
+                CFRelease(_size);
+                [moveResize setTracking:CACurrentMediaTime()];
+            }
+        } else {
+            // Hover move — same logic as drag move
+            AXUIElementRef _hoverWindow = [moveResize window];
+            double deltaX = CGEventGetDoubleValueField(event, kCGMouseEventDeltaX);
+            double deltaY = CGEventGetDoubleValueField(event, kCGMouseEventDeltaY);
+
+            NSPoint cTopLeft = [moveResize wndPosition];
+            NSPoint thePoint;
+            thePoint.x = cTopLeft.x + deltaX;
+            thePoint.y = cTopLeft.y + deltaY;
+            [moveResize setWndPosition:thePoint];
+
+            if (CACurrentMediaTime() - [moveResize tracking] > ourDelegate.moveFilterInterval) {
+                CFTypeRef _position = (CFTypeRef)(AXValueCreate(kAXValueCGPointType, (const void *)&thePoint));
+                AXUIElementSetAttributeValue(_hoverWindow, (__bridge CFStringRef)NSAccessibilityPositionAttribute, (CFTypeRef *)_position);
+                if (_position != NULL) CFRelease(_position);
+                [moveResize setTracking:CACurrentMediaTime()];
+            }
+        }
+
+        return event; // never swallow mouse movement
+    }
+
     // Map CGEvent type to button number and event phase
     int eventButton = -1;
     BOOL isDown = NO, isDrag = NO, isUp = NO;
@@ -127,103 +396,10 @@ CGEventRef myCGEventCallback(CGEventTapProxy __unused proxy, CGEventType type, C
         [moveResize setTracking:CACurrentMediaTime()];
         [moveResize setIsResizing:isForResize];
 
-        AXUIElementRef _systemWideElement;
-        AXUIElementRef _clickedWindow = NULL;
-        _systemWideElement = AXUIElementCreateSystemWide();
-
-        AXUIElementRef _element;
-        if ((AXUIElementCopyElementAtPosition(_systemWideElement, (float) mouseLocation.x, (float) mouseLocation.y, &_element) == kAXErrorSuccess) && _element) {
-            CFTypeRef _role;
-            if (AXUIElementCopyAttributeValue(_element, (__bridge CFStringRef)NSAccessibilityRoleAttribute, &_role) == kAXErrorSuccess) {
-                if ([(__bridge NSString *)_role isEqualToString:NSAccessibilityWindowRole]) {
-                    _clickedWindow = _element;
-                }
-                if (_role != NULL) CFRelease(_role);
-            }
-            CFTypeRef _window;
-            if (AXUIElementCopyAttributeValue(_element, (__bridge CFStringRef)NSAccessibilityWindowAttribute, &_window) == kAXErrorSuccess) {
-                if (_element != NULL) CFRelease(_element);
-                _clickedWindow = (AXUIElementRef)_window;
-            }
-        }
-        CFRelease(_systemWideElement);
-
-        pid_t PID;
-        NSRunningApplication* app;
-        if(!AXUIElementGetPid(_clickedWindow, &PID)) {
-            app = [NSRunningApplication runningApplicationWithProcessIdentifier:PID];
-            if ([[ourDelegate getDisabledApps] objectForKey:[app bundleIdentifier]] != nil) {
-                [moveResize setTracking:0];
-                [moveResize setIsResizing:NO];
-                return event;
-            }
-            [ourDelegate setMostRecentApp:app];
-        }
-
-        if([ourDelegate shouldBringWindowToFront]){
-            if (app != nil) {
-                [app activateWithOptions:NSApplicationActivateIgnoringOtherApps];
-            }
-            AXUIElementPerformAction(_clickedWindow, kAXRaiseAction);
-        }
-
-        CFTypeRef _cPosition = nil;
-        NSPoint cTopLeft;
-        if (AXUIElementCopyAttributeValue((AXUIElementRef)_clickedWindow, (__bridge CFStringRef)NSAccessibilityPositionAttribute, &_cPosition) == kAXErrorSuccess) {
-            if (!AXValueGetValue(_cPosition, kAXValueCGPointType, (void *)&cTopLeft)) {
-                NSLog(@"ERROR: Could not decode position");
-                cTopLeft = NSMakePoint(0, 0);
-            }
-            CFRelease(_cPosition);
-        }
-
-        cTopLeft.x = (int) cTopLeft.x;
-        cTopLeft.y = (int) cTopLeft.y;
-
-        [moveResize setWndPosition:cTopLeft];
-        [moveResize setWindow:_clickedWindow];
-        if (_clickedWindow != nil) CFRelease(_clickedWindow);
-
-        // If this is a resize, compute resize direction from click position in window thirds
-        if (isForResize) {
-            AXUIElementRef _resizeWindow = [moveResize window];
-            struct ResizeSection resizeSection;
-
-            CGPoint clickPoint = mouseLocation;
-            clickPoint.x -= cTopLeft.x;
-            clickPoint.y -= cTopLeft.y;
-
-            CFTypeRef _cSize;
-            NSSize cSize;
-            if (!(AXUIElementCopyAttributeValue((AXUIElementRef)_resizeWindow, (__bridge CFStringRef)NSAccessibilitySizeAttribute, &_cSize) == kAXErrorSuccess)
-                    || !AXValueGetValue(_cSize, kAXValueCGSizeType, (void *)&cSize)) {
-                NSLog(@"ERROR: Could not decode size");
-                [moveResize setTracking:0];
-                [moveResize setIsResizing:NO];
-                return NULL;
-            }
-            CFRelease(_cSize);
-
-            NSSize wndSize = cSize;
-
-            if (clickPoint.x < wndSize.width/3) {
-                resizeSection.xResizeDirection = left;
-            } else if (clickPoint.x > 2*wndSize.width/3) {
-                resizeSection.xResizeDirection = right;
-            } else {
-                resizeSection.xResizeDirection = noX;
-            }
-
-            if (clickPoint.y < wndSize.height/3) {
-                resizeSection.yResizeDirection = bottom;
-            } else if (clickPoint.y > 2*wndSize.height/3) {
-                resizeSection.yResizeDirection = top;
-            } else {
-                resizeSection.yResizeDirection = noY;
-            }
-
-            [moveResize setWndSize:wndSize];
-            [moveResize setResizeSection:resizeSection];
+        if (!captureWindowAtPoint(mouseLocation, ourDelegate, isForResize)) {
+            [moveResize setTracking:0];
+            [moveResize setIsResizing:NO];
+            return isForResize ? NULL : event;
         }
 
         handled = YES;
@@ -306,10 +482,12 @@ CGEventRef myCGEventCallback(CGEventTapProxy __unused proxy, CGEventType type, C
         handled = YES;
     }
 
-    // --- MOUSE UP: clear tracking ---
+    // --- MOUSE UP: clear tracking (but not during hover — let modifier release handle it) ---
     if (isUp && [moveResize tracking] > 0) {
-        [moveResize setTracking:0];
-        [moveResize setIsResizing:NO];
+        if (![moveResize isHoverActive]) {
+            [moveResize setTracking:0];
+            [moveResize setIsResizing:NO];
+        }
         handled = YES;
     }
 
@@ -346,18 +524,7 @@ CGEventRef myCGEventCallback(CGEventTapProxy __unused proxy, CGEventType type, C
     [self buildMenu];
     [self refreshCachedPreferences];
 
-    CFRunLoopSourceRef runLoopSource;
-
-    CGEventMask eventMask = CGEventMaskBit( kCGEventLeftMouseDown )
-                    | CGEventMaskBit( kCGEventRightMouseDown )
-                    | CGEventMaskBit( kCGEventOtherMouseDown )
-                    | CGEventMaskBit( kCGEventLeftMouseDragged )
-                    | CGEventMaskBit( kCGEventRightMouseDragged )
-                    | CGEventMaskBit( kCGEventOtherMouseDragged )
-                    | CGEventMaskBit( kCGEventLeftMouseUp )
-                    | CGEventMaskBit( kCGEventRightMouseUp )
-                    | CGEventMaskBit( kCGEventOtherMouseUp )
-    ;
+    CGEventMask eventMask = [self eventMaskForCurrentPreferences];
 
     CFMachPortRef eventTap = CGEventTapCreate(kCGHIDEventTap,
                                               kCGHeadInsertEventTap,
@@ -371,7 +538,7 @@ CGEventRef myCGEventCallback(CGEventTapProxy __unused proxy, CGEventType type, C
         exit(1);
     }
 
-    runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0);
+    CFRunLoopSourceRef runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0);
 
     EMRMoveResize *moveResize = [EMRMoveResize instance];
     [moveResize setEventTap:eventTap];
@@ -563,8 +730,14 @@ CGEventRef myCGEventCallback(CGEventTapProxy __unused proxy, CGEventType type, C
     [conflictWarningMenu setHidden:YES];
     [statusMenu insertItem:conflictWarningMenu atIndex:insertIdx++];
 
-    // Separator before "Bring Window to Front"
+    // Separator before hover mode / "Bring Window to Front"
     [statusMenu insertItem:[NSMenuItem separatorItem] atIndex:insertIdx++];
+
+    // --- Hover mode toggle ---
+    hoverModeMenu = [[NSMenuItem alloc] initWithTitle:@"Hover to Move/Resize (no click)" action:@selector(toggleHoverMode:) keyEquivalent:@""];
+    [hoverModeMenu setTarget:self];
+    [hoverModeMenu setState:[preferences hoverModeEnabled] ? NSControlStateValueOn : NSControlStateValueOff];
+    [statusMenu insertItem:hoverModeMenu atIndex:insertIdx++];
 
     // --- Non-programmatic items (from XIB) follow: Bring Window to Front, Resize only, etc. ---
     // Set their initial states
@@ -640,6 +813,7 @@ CGEventRef myCGEventCallback(CGEventTapProxy __unused proxy, CGEventType type, C
     // Other toggles
     [_bringWindowFrontMenu setState:[preferences shouldBringWindowToFront] ? NSControlStateValueOn : NSControlStateValueOff];
     [_resizeOnlyMenu setState:[preferences resizeOnly] ? NSControlStateValueOn : NSControlStateValueOff];
+    [hoverModeMenu setState:[preferences hoverModeEnabled] ? NSControlStateValueOn : NSControlStateValueOff];
     [_disabledMenu setState:NSControlStateValueOff];
 
     // Resize-only greys out Move section
@@ -671,11 +845,15 @@ CGEventRef myCGEventCallback(CGEventTapProxy __unused proxy, CGEventType type, C
 
 - (IBAction)resetToDefaults:(id)sender {
     EMRMoveResize* moveResize = [EMRMoveResize instance];
+    [moveResize setIsHoverActive:NO];
+    [moveResize setTracking:0];
+    [moveResize setIsResizing:NO];
     [preferences setToDefaults];
     [self syncMenuStatesFromPreferences];
     [self setMenusEnabled:YES];
     [self enableRunLoopSource:moveResize];
     [self refreshCachedPreferences];
+    [self recreateEventTap];
 }
 
 - (IBAction)toggleBringWindowToFront:(id)sender {
@@ -706,6 +884,24 @@ CGEventRef myCGEventCallback(CGEventTapProxy __unused proxy, CGEventType type, C
     [menu setState:newState];
     [preferences setResizeOnly:newState];
     [self updateMoveMenuEnabled:!newState];
+}
+
+- (IBAction)toggleHoverMode:(id)sender {
+    NSMenuItem *menu = (NSMenuItem*)sender;
+    BOOL newState = ![menu state];
+    [menu setState:newState];
+    [preferences setHoverModeEnabled:newState];
+
+    if (!newState) {
+        // Disabling: clear hover state before rebuilding tap
+        EMRMoveResize *moveResize = [EMRMoveResize instance];
+        [moveResize setIsHoverActive:NO];
+        [moveResize setTracking:0];
+        [moveResize setIsResizing:NO];
+    }
+
+    [self refreshCachedPreferences];
+    [self recreateEventTap];
 }
 
 - (IBAction)setMoveMouseButton:(id)sender {
@@ -788,6 +984,7 @@ CGEventRef myCGEventCallback(CGEventTapProxy __unused proxy, CGEventType type, C
     // Other items
     [_bringWindowFrontMenu setEnabled:enabled];
     [_resizeOnlyMenu setEnabled:enabled];
+    [hoverModeMenu setEnabled:enabled];
 
     // When re-enabling, respect resizeOnly state for Move section
     if (enabled && [preferences resizeOnly]) {

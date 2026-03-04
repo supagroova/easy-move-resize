@@ -27,6 +27,7 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     EMRMoveResize *mr = [EMRMoveResize instance];
     [mr setTracking:0];
     [mr setIsResizing:NO];
+    [mr setIsHoverActive:NO];
     [mr setWindow:nil];
 }
 
@@ -47,6 +48,9 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
 - (void)setCachedHasConflict:(BOOL)conflict {
     [delegate setValue:@(conflict) forKey:@"cachedHasConflict"];
 }
+- (void)setCachedHoverModeEnabled:(BOOL)enabled {
+    [delegate setValue:@(enabled) forKey:@"cachedHoverModeEnabled"];
+}
 
 #pragma mark - Helper: create a CGEvent with specific type and modifier flags
 
@@ -65,6 +69,25 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     CGEventRef event = CGEventCreateMouseEvent(NULL, type, location, button);
     if (event && flags != 0) {
         CGEventSetFlags(event, flags);
+    }
+    return event;
+}
+
+- (CGEventRef)createFlagsChangedEvent:(CGEventFlags)flags {
+    // kCGEventFlagsChanged carries current mouse location
+    CGEventRef event = CGEventCreate(NULL);
+    CGEventSetType(event, kCGEventFlagsChanged);
+    CGEventSetFlags(event, flags);
+    CGEventSetLocation(event, CGPointMake(100, 100));
+    return event;
+}
+
+- (CGEventRef)createMouseMovedEvent:(CGEventFlags)flags deltaX:(int64_t)dx deltaY:(int64_t)dy {
+    CGEventRef event = CGEventCreateMouseEvent(NULL, kCGEventMouseMoved, CGPointMake(200, 200), kCGMouseButtonLeft);
+    if (event) {
+        CGEventSetFlags(event, flags);
+        CGEventSetIntegerValueField(event, kCGMouseEventDeltaX, dx);
+        CGEventSetIntegerValueField(event, kCGMouseEventDeltaY, dy);
     }
     return event;
 }
@@ -494,6 +517,210 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     [mr setIsResizing:NO];
     CFRelease(leftEvent);
     CFRelease(middleEvent);
+}
+
+#pragma mark - Hover mode: kCGEventFlagsChanged
+
+- (void)testFlagsChangedPassesThroughWhenHoverDisabled {
+    [delegate setSessionActive:YES];
+    [self setCachedHoverModeEnabled:NO];
+    [self setCachedMoveModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
+    [self setCachedResizeModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
+
+    CGEventRef event = [self createFlagsChangedEvent:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
+    CGEventRef result = myCGEventCallback(NULL, kCGEventFlagsChanged, event, (__bridge void *)delegate);
+
+    XCTAssertEqual(result, event, "Flags changed should pass through when hover mode is disabled");
+    EMRMoveResize *mr = [EMRMoveResize instance];
+    XCTAssertFalse([mr isHoverActive], "isHoverActive should remain NO when hover disabled");
+    CFRelease(event);
+}
+
+- (void)testFlagsChangedAlwaysReturnsEvent {
+    // Modifier events should never be swallowed
+    [delegate setSessionActive:YES];
+    [self setCachedHoverModeEnabled:YES];
+    [self setCachedMoveModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
+    [self setCachedResizeModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
+    [self setCachedMoveButton:EMRMouseButtonLeft];
+    [self setCachedResizeButton:EMRMouseButtonRight];
+
+    CGEventRef event = [self createFlagsChangedEvent:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
+    CGEventRef result = myCGEventCallback(NULL, kCGEventFlagsChanged, event, (__bridge void *)delegate);
+    XCTAssertEqual(result, event, "kCGEventFlagsChanged should always return event (never swallowed)");
+
+    // Cleanup
+    EMRMoveResize *mr = [EMRMoveResize instance];
+    [mr setIsHoverActive:NO];
+    [mr setTracking:0];
+    CFRelease(event);
+}
+
+- (void)testFlagsChangedDeactivatesOnModifierRelease {
+    [delegate setSessionActive:YES];
+    [self setCachedHoverModeEnabled:YES];
+    [self setCachedMoveModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
+    [self setCachedResizeModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskAlternate];
+    [self setCachedMoveButton:EMRMouseButtonLeft];
+    [self setCachedResizeButton:EMRMouseButtonRight];
+
+    // Simulate active hover
+    EMRMoveResize *mr = [EMRMoveResize instance];
+    [mr setTracking:CACurrentMediaTime()];
+    [mr setIsHoverActive:YES];
+    [mr setIsResizing:NO];
+
+    // Release all modifiers (flags = 0)
+    CGEventRef event = [self createFlagsChangedEvent:0];
+    CGEventRef result = myCGEventCallback(NULL, kCGEventFlagsChanged, event, (__bridge void *)delegate);
+
+    XCTAssertEqual(result, event, "Event should be passed through");
+    XCTAssertFalse([mr isHoverActive], "isHoverActive should be NO after modifier release");
+    XCTAssertEqual([mr tracking], 0, "tracking should be cleared after deactivation");
+    XCTAssertFalse([mr isResizing], "isResizing should be NO after deactivation");
+    CFRelease(event);
+}
+
+- (void)testFlagsChangedResizeOnlySuppressesMoveHover {
+    [delegate setSessionActive:YES];
+    [self setCachedHoverModeEnabled:YES];
+    [self setCachedMoveModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
+    [self setCachedResizeModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskAlternate];
+    [self setCachedMoveButton:EMRMouseButtonLeft];
+    [self setCachedResizeButton:EMRMouseButtonRight];
+
+    NSUserDefaults *prefs = [[NSUserDefaults alloc] initWithSuiteName:@"userPrefs"];
+    [prefs setBool:YES forKey:@"ResizeOnly"];
+
+    // Send move modifiers — should not activate due to resizeOnly
+    CGEventRef event = [self createFlagsChangedEvent:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
+    myCGEventCallback(NULL, kCGEventFlagsChanged, event, (__bridge void *)delegate);
+
+    EMRMoveResize *mr = [EMRMoveResize instance];
+    XCTAssertFalse([mr isHoverActive], "Hover move should not activate when resizeOnly is ON");
+
+    [prefs setBool:NO forKey:@"ResizeOnly"];
+    CFRelease(event);
+}
+
+#pragma mark - Hover mode: kCGEventMouseMoved
+
+- (void)testMouseMovedPassesThroughWhenNotHovering {
+    [delegate setSessionActive:YES];
+    [self setCachedHoverModeEnabled:YES];
+    [self setCachedMoveModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
+    [self setCachedResizeModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
+
+    EMRMoveResize *mr = [EMRMoveResize instance];
+    [mr setIsHoverActive:NO];
+    [mr setTracking:0];
+
+    CGEventRef event = [self createMouseMovedEvent:0 deltaX:10 deltaY:5];
+    CGEventRef result = myCGEventCallback(NULL, kCGEventMouseMoved, event, (__bridge void *)delegate);
+
+    XCTAssertEqual(result, event, "Mouse moved should pass through when not hovering");
+    CFRelease(event);
+}
+
+- (void)testMouseMovedAlwaysReturnsEvent {
+    // Mouse moved events should never be swallowed
+    [delegate setSessionActive:YES];
+    [self setCachedHoverModeEnabled:YES];
+    [self setCachedMoveModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
+    [self setCachedResizeModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
+
+    EMRMoveResize *mr = [EMRMoveResize instance];
+    [mr setTracking:CACurrentMediaTime()];
+    [mr setIsHoverActive:YES];
+    [mr setIsResizing:NO];
+    [mr setWndPosition:NSMakePoint(100, 100)];
+
+    CGEventFlags flags = kCGEventFlagMaskCommand | kCGEventFlagMaskControl;
+    CGEventRef event = [self createMouseMovedEvent:flags deltaX:10 deltaY:5];
+    CGEventRef result = myCGEventCallback(NULL, kCGEventMouseMoved, event, (__bridge void *)delegate);
+
+    XCTAssertEqual(result, event, "kCGEventMouseMoved should always return event (never NULL)");
+
+    [mr setIsHoverActive:NO];
+    [mr setTracking:0];
+    CFRelease(event);
+}
+
+- (void)testMouseMovedUpdatesPositionDuringHoverMove {
+    [delegate setSessionActive:YES];
+    [self setCachedHoverModeEnabled:YES];
+    [self setCachedMoveModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
+    [self setCachedResizeModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
+    [delegate setMoveFilterInterval:0]; // No throttle for testing
+
+    EMRMoveResize *mr = [EMRMoveResize instance];
+    [mr setTracking:CACurrentMediaTime() - 1]; // Started 1 sec ago
+    [mr setIsHoverActive:YES];
+    [mr setIsResizing:NO];
+    NSPoint originalPos = NSMakePoint(100, 100);
+    [mr setWndPosition:originalPos];
+
+    CGEventFlags flags = kCGEventFlagMaskCommand | kCGEventFlagMaskControl;
+    CGEventRef event = [self createMouseMovedEvent:flags deltaX:15 deltaY:20];
+    myCGEventCallback(NULL, kCGEventMouseMoved, event, (__bridge void *)delegate);
+
+    // wndPosition should have been updated by the delta
+    NSPoint newPos = [mr wndPosition];
+    XCTAssertEqualWithAccuracy(newPos.x, 115.0, 0.1, "X position should increase by deltaX");
+    XCTAssertEqualWithAccuracy(newPos.y, 120.0, 0.1, "Y position should increase by deltaY");
+
+    [mr setIsHoverActive:NO];
+    [mr setTracking:0];
+    CFRelease(event);
+}
+
+#pragma mark - Hover mode: mouse-up during hover preserves tracking
+
+- (void)testMouseUpDuringHoverDoesNotClearTracking {
+    [delegate setSessionActive:YES];
+    [self setCachedMoveModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
+    [self setCachedResizeModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
+    [self setCachedMoveButton:EMRMouseButtonLeft];
+    [self setCachedResizeButton:EMRMouseButtonRight];
+
+    EMRMoveResize *mr = [EMRMoveResize instance];
+    CFTimeInterval startTime = CACurrentMediaTime();
+    [mr setTracking:startTime];
+    [mr setIsHoverActive:YES];
+    [mr setIsResizing:NO];
+
+    CGEventRef event = [self createMouseEvent:kCGEventLeftMouseUp flags:0];
+    CGEventRef result = myCGEventCallback(NULL, kCGEventLeftMouseUp, event, (__bridge void *)delegate);
+
+    XCTAssertTrue(result == NULL, "Mouse-up during hover should still be handled (return NULL)");
+    XCTAssertTrue([mr tracking] > 0, "Tracking should NOT be cleared during hover");
+    XCTAssertTrue([mr isHoverActive], "isHoverActive should remain YES during mouse-up");
+
+    // Cleanup
+    [mr setIsHoverActive:NO];
+    [mr setTracking:0];
+    CFRelease(event);
+}
+
+- (void)testMouseUpWithoutHoverClearsTracking {
+    // Verify existing behavior is preserved when hover is NOT active
+    [delegate setSessionActive:YES];
+    [self setCachedMoveModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
+    [self setCachedResizeModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
+    [self setCachedMoveButton:EMRMouseButtonLeft];
+    [self setCachedResizeButton:EMRMouseButtonRight];
+
+    EMRMoveResize *mr = [EMRMoveResize instance];
+    [mr setTracking:CACurrentMediaTime()];
+    [mr setIsHoverActive:NO];
+    [mr setIsResizing:YES];
+
+    CGEventRef event = [self createMouseEvent:kCGEventLeftMouseUp flags:0];
+    myCGEventCallback(NULL, kCGEventLeftMouseUp, event, (__bridge void *)delegate);
+
+    XCTAssertEqual([mr tracking], 0, "Tracking should be cleared on mouse-up without hover");
+    XCTAssertFalse([mr isResizing], "isResizing should be cleared on mouse-up without hover");
+    CFRelease(event);
 }
 
 @end

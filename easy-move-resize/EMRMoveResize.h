@@ -26,6 +26,7 @@ struct ResizeSection {
     NSPoint _wndPosition;
     NSSize _wndSize;
     BOOL _isResizing;
+    BOOL _isHoverActive;
 }
 
 + (id) instance;
@@ -38,5 +39,6 @@ struct ResizeSection {
 @property NSPoint wndPosition;
 @property NSSize wndSize;
 @property BOOL isResizing;
+@property (atomic) BOOL isHoverActive;
 
 @end

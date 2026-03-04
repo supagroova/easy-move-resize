@@ -17,6 +17,7 @@
 #define RESIZE_MOUSE_BUTTON @"ResizeMouseButton"
 #define PREFERENCES_VERSION_KEY @"PreferencesVersion"
 #define DISABLED_APPS_DEFAULTS_KEY @"DisabledApps"
+#define HOVER_MODE_ENABLED @"HoverModeEnabled"
 #define CTRL_KEY @"CTRL"
 #define SHIFT_KEY @"SHIFT"
 #define CAPS_KEY @"CAPS" // CAPS lock
@@ -37,6 +38,7 @@ enum {
 
 @property (nonatomic) BOOL shouldBringWindowToFront;
 @property (nonatomic) BOOL resizeOnly;
+@property (nonatomic) BOOL hoverModeEnabled;
 
 // Initialize an EMRPreferences, persisting settings to the given userDefaults
 - (id)initWithUserDefaults:(NSUserDefaults *)defaults;

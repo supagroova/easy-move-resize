@@ -193,6 +193,7 @@
     [userDefaults setInteger:EMRMouseButtonRight forKey:RESIZE_MOUSE_BUTTON];
     [userDefaults setInteger:CURRENT_PREFERENCES_VERSION forKey:PREFERENCES_VERSION_KEY];
     [userDefaults setObject:[NSDictionary dictionary] forKey:DISABLED_APPS_DEFAULTS_KEY];
+    [userDefaults setBool:NO forKey:HOVER_MODE_ENABLED];
 }
 
 #pragma mark - Flag string utilities
@@ -250,6 +251,13 @@
 }
 -(void)setResizeOnly:(BOOL)resizeOnly {
     [userDefaults setBool:resizeOnly forKey:RESIZE_ONLY];
+}
+
+-(BOOL)hoverModeEnabled {
+    return [userDefaults boolForKey:HOVER_MODE_ENABLED];
+}
+-(void)setHoverModeEnabled:(BOOL)hoverModeEnabled {
+    [userDefaults setBool:hoverModeEnabled forKey:HOVER_MODE_ENABLED];
 }
 
 @end

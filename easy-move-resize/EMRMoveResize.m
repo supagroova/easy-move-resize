@@ -7,6 +7,7 @@
 @synthesize wndPosition = _wndPosition;
 @synthesize wndSize = _wndSize;
 @synthesize isResizing = _isResizing;
+@synthesize isHoverActive = _isHoverActive;
 
 + (EMRMoveResize*)instance {
     static EMRMoveResize *instance = nil;
@@ -21,6 +22,7 @@
 - init {
     _window = nil;
     _runLoopSource = nil;
+    _isHoverActive = NO;
     return self;
 }
 

@@ -32,6 +32,9 @@
 
     // Programmatic menu items — other
     NSMenuItem *conflictWarningMenu;
+    NSMenuItem *hoverModeMenu;
+
+    BOOL cachedHoverModeEnabled;
 }
 
 - (int)modifierFlags;
@@ -49,6 +52,7 @@
 - (IBAction)setResizeMouseButton:(id)sender;
 - (IBAction)disableLastApp:(id)sender;
 - (IBAction)enableDisabledApp:(id)sender;
+- (IBAction)toggleHoverMode:(id)sender;
 
 // XIB-wired outlets — kept for items that remain in the XIB
 @property (weak) IBOutlet NSMenuItem *disabledMenu;

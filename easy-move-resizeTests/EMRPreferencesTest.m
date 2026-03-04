@@ -285,4 +285,30 @@
     XCTAssertTrue([preferences hasConflictingConfig], "Same button + same (empty) modifiers should conflict");
 }
 
+#pragma mark - Hover mode preference
+
+- (void)testHoverModeDefaultsToNO {
+    [preferences setToDefaults];
+    XCTAssertFalse([preferences hoverModeEnabled], "Hover mode should default to NO");
+}
+
+- (void)testSetHoverModeEnabled {
+    [preferences setToDefaults];
+    [preferences setHoverModeEnabled:YES];
+    XCTAssertTrue([preferences hoverModeEnabled], "Hover mode should be YES after enabling");
+}
+
+- (void)testSetHoverModeDisabled {
+    [preferences setToDefaults];
+    [preferences setHoverModeEnabled:YES];
+    [preferences setHoverModeEnabled:NO];
+    XCTAssertFalse([preferences hoverModeEnabled], "Hover mode should be NO after disabling");
+}
+
+- (void)testSetToDefaultsResetsHoverMode {
+    [preferences setHoverModeEnabled:YES];
+    [preferences setToDefaults];
+    XCTAssertFalse([preferences hoverModeEnabled], "setToDefaults should reset hover mode to NO");
+}
+
 @end

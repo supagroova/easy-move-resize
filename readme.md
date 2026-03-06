@@ -1,4 +1,6 @@
-# ![icon](easy-move-resize/Images.xcassets/AppIcon.appiconset/icon_32x32.png) Zooom3
+![icon](easy-move-resize/Images.xcassets/AppIcon.appiconset/icon_128x128.png)
+
+# Zooom3
 
 A macOS utility that adds **modifier key + mouse** window move and resize, inspired by X11/Linux window managers and the classic [Zooom2](https://roaringapps.com/app/zooom2) app.
 

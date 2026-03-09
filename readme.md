@@ -1,4 +1,4 @@
-![icon](easy-move-resize/Images.xcassets/AppIcon.appiconset/icon_128x128.png)
+![icon](zooom3/Images.xcassets/AppIcon.appiconset/icon_128x128.png)
 
 # Zooom3
 

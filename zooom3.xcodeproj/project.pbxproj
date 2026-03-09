@@ -29,28 +29,28 @@
 			containerPortal = 6ED47B59183BF3E800859244 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 6ED47B60183BF3E800859244;
-			remoteInfo = "easy-move-resize";
+			remoteInfo = "zooom3";
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		52B5E8F51C513E3D0055C181 /* EMRPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EMRPreferences.m; sourceTree = "<group>"; };
 		52B5E8F81C513E7A0055C181 /* EMRPreferences.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EMRPreferences.h; sourceTree = "<group>"; };
-		65CF01621F229C34002259F2 /* easy-move-resizeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "easy-move-resizeTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		65CF01621F229C34002259F2 /* zooom3Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "zooom3Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		65CF01641F229C34002259F2 /* EMRPreferencesTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EMRPreferencesTest.m; sourceTree = "<group>"; };
 		65CF01661F229C34002259F2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA0001021A229C34002259F2 /* EMRMoveResizeTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EMRMoveResizeTest.m; sourceTree = "<group>"; };
 		AA0001041A229C34002259F2 /* EMRAppDelegateTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EMRAppDelegateTest.m; sourceTree = "<group>"; };
 		6E238EE0184504BC00E47948 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
-		6ED47B61183BF3E800859244 /* Easy Move+Resize.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Zooom3.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		6ED47B61183BF3E800859244 /* Zooom3.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Zooom3.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		6ED47B64183BF3E800859244 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		6ED47B67183BF3E800859244 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		6ED47B68183BF3E800859244 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		6ED47B69183BF3E800859244 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
-		6ED47B6C183BF3E800859244 /* easy-move-resize-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "easy-move-resize-Info.plist"; sourceTree = "<group>"; };
+		6ED47B6C183BF3E800859244 /* zooom3-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "zooom3-Info.plist"; sourceTree = "<group>"; };
 		6ED47B6E183BF3E800859244 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		6ED47B70183BF3E800859244 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		6ED47B72183BF3E800859244 /* easy-move-resize-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "easy-move-resize-Prefix.pch"; sourceTree = "<group>"; };
+		6ED47B72183BF3E800859244 /* zooom3-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "zooom3-Prefix.pch"; sourceTree = "<group>"; };
 		6ED47B76183BF3E800859244 /* EMRAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EMRAppDelegate.h; sourceTree = "<group>"; };
 		6ED47B77183BF3E800859244 /* EMRAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EMRAppDelegate.m; sourceTree = "<group>"; };
 		6ED47B7C183BF3E800859244 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
@@ -84,7 +84,7 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		65CF01631F229C34002259F2 /* easy-move-resizeTests */ = {
+		65CF01631F229C34002259F2 /* zooom3Tests */ = {
 			isa = PBXGroup;
 			children = (
 				65CF01641F229C34002259F2 /* EMRPreferencesTest.m */,
@@ -92,14 +92,14 @@
 				AA0001041A229C34002259F2 /* EMRAppDelegateTest.m */,
 				65CF01661F229C34002259F2 /* Info.plist */,
 			);
-			path = "easy-move-resizeTests";
+			path = "zooom3Tests";
 			sourceTree = "<group>";
 		};
 		6ED47B58183BF3E800859244 = {
 			isa = PBXGroup;
 			children = (
-				6ED47B6A183BF3E800859244 /* easy-move-resize */,
-				65CF01631F229C34002259F2 /* easy-move-resizeTests */,
+				6ED47B6A183BF3E800859244 /* zooom3 */,
+				65CF01631F229C34002259F2 /* zooom3Tests */,
 				6ED47B63183BF3E800859244 /* Frameworks */,
 				6ED47B62183BF3E800859244 /* Products */,
 				F907AB0E17E61960C00A089F /* .gitignore */,
@@ -112,8 +112,8 @@
 		6ED47B62183BF3E800859244 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				6ED47B61183BF3E800859244 /* Easy Move+Resize.app */,
-				65CF01621F229C34002259F2 /* easy-move-resizeTests.xctest */,
+				6ED47B61183BF3E800859244 /* Zooom3.app */,
+				65CF01621F229C34002259F2 /* zooom3Tests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -139,7 +139,7 @@
 			name = "Other Frameworks";
 			sourceTree = "<group>";
 		};
-		6ED47B6A183BF3E800859244 /* easy-move-resize */ = {
+		6ED47B6A183BF3E800859244 /* zooom3 */ = {
 			isa = PBXGroup;
 			children = (
 				6ED47B76183BF3E800859244 /* EMRAppDelegate.h */,
@@ -152,16 +152,16 @@
 				52B5E8F51C513E3D0055C181 /* EMRPreferences.m */,
 				52B5E8F81C513E7A0055C181 /* EMRPreferences.h */,
 			);
-			path = "easy-move-resize";
+			path = "zooom3";
 			sourceTree = "<group>";
 		};
 		6ED47B6B183BF3E800859244 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				6ED47B6C183BF3E800859244 /* easy-move-resize-Info.plist */,
+				6ED47B6C183BF3E800859244 /* zooom3-Info.plist */,
 				6ED47B6D183BF3E800859244 /* InfoPlist.strings */,
 				6ED47B70183BF3E800859244 /* main.m */,
-				6ED47B72183BF3E800859244 /* easy-move-resize-Prefix.pch */,
+				6ED47B72183BF3E800859244 /* zooom3-Prefix.pch */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -169,9 +169,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		65CF01611F229C34002259F2 /* easy-move-resizeTests */ = {
+		65CF01611F229C34002259F2 /* zooom3Tests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 65CF01691F229C34002259F2 /* Build configuration list for PBXNativeTarget "easy-move-resizeTests" */;
+			buildConfigurationList = 65CF01691F229C34002259F2 /* Build configuration list for PBXNativeTarget "zooom3Tests" */;
 			buildPhases = (
 				65CF015E1F229C34002259F2 /* Sources */,
 				65CF015F1F229C34002259F2 /* Frameworks */,
@@ -182,14 +182,14 @@
 			dependencies = (
 				65CF01681F229C34002259F2 /* PBXTargetDependency */,
 			);
-			name = "easy-move-resizeTests";
-			productName = "easy-move-resizeTests";
-			productReference = 65CF01621F229C34002259F2 /* easy-move-resizeTests.xctest */;
+			name = "zooom3Tests";
+			productName = "zooom3Tests";
+			productReference = 65CF01621F229C34002259F2 /* zooom3Tests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		6ED47B60183BF3E800859244 /* easy-move-resize */ = {
+		6ED47B60183BF3E800859244 /* zooom3 */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 6ED47B92183BF3E800859244 /* Build configuration list for PBXNativeTarget "easy-move-resize" */;
+			buildConfigurationList = 6ED47B92183BF3E800859244 /* Build configuration list for PBXNativeTarget "zooom3" */;
 			buildPhases = (
 				6ED47B5D183BF3E800859244 /* Sources */,
 				6ED47B5E183BF3E800859244 /* Frameworks */,
@@ -199,9 +199,9 @@
 			);
 			dependencies = (
 			);
-			name = "easy-move-resize";
-			productName = "easy-move-resize";
-			productReference = 6ED47B61183BF3E800859244 /* Easy Move+Resize.app */;
+			name = "zooom3";
+			productName = "zooom3";
+			productReference = 6ED47B61183BF3E800859244 /* Zooom3.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -221,7 +221,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 6ED47B5C183BF3E800859244 /* Build configuration list for PBXProject "easy-move-resize" */;
+			buildConfigurationList = 6ED47B5C183BF3E800859244 /* Build configuration list for PBXProject "zooom3" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -235,8 +235,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				6ED47B60183BF3E800859244 /* easy-move-resize */,
-				65CF01611F229C34002259F2 /* easy-move-resizeTests */,
+				6ED47B60183BF3E800859244 /* zooom3 */,
+				65CF01611F229C34002259F2 /* zooom3Tests */,
 			);
 		};
 /* End PBXProject section */
@@ -290,7 +290,7 @@
 /* Begin PBXTargetDependency section */
 		65CF01681F229C34002259F2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 6ED47B60183BF3E800859244 /* easy-move-resize */;
+			target = 6ED47B60183BF3E800859244 /* zooom3 */;
 			targetProxy = 653CC7461F8EB8AA009485A4 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -327,7 +327,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				INFOPLIST_FILE = "easy-move-resizeTests/Info.plist";
+				INFOPLIST_FILE = "zooom3Tests/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				MTL_ENABLE_DEBUG_INFO = YES;
@@ -349,7 +349,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				INFOPLIST_FILE = "easy-move-resizeTests/Info.plist";
+				INFOPLIST_FILE = "zooom3Tests/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				MTL_ENABLE_DEBUG_INFO = NO;
@@ -456,8 +456,8 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "easy-move-resize/easy-move-resize-Prefix.pch";
-				INFOPLIST_FILE = "easy-move-resize/easy-move-resize-Info.plist";
+				GCC_PREFIX_HEADER = "zooom3/zooom3-Prefix.pch";
+				INFOPLIST_FILE = "zooom3/zooom3-Info.plist";
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.supagroova.zooom3";
 				PRODUCT_NAME = "Zooom3";
@@ -472,8 +472,8 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "easy-move-resize/easy-move-resize-Prefix.pch";
-				INFOPLIST_FILE = "easy-move-resize/easy-move-resize-Info.plist";
+				GCC_PREFIX_HEADER = "zooom3/zooom3-Prefix.pch";
+				INFOPLIST_FILE = "zooom3/zooom3-Info.plist";
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.supagroova.zooom3";
 				PRODUCT_NAME = "Zooom3";
@@ -485,7 +485,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		65CF01691F229C34002259F2 /* Build configuration list for PBXNativeTarget "easy-move-resizeTests" */ = {
+		65CF01691F229C34002259F2 /* Build configuration list for PBXNativeTarget "zooom3Tests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				65CF016A1F229C34002259F2 /* Debug */,
@@ -494,7 +494,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		6ED47B5C183BF3E800859244 /* Build configuration list for PBXProject "easy-move-resize" */ = {
+		6ED47B5C183BF3E800859244 /* Build configuration list for PBXProject "zooom3" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				6ED47B90183BF3E800859244 /* Debug */,
@@ -503,7 +503,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		6ED47B92183BF3E800859244 /* Build configuration list for PBXNativeTarget "easy-move-resize" */ = {
+		6ED47B92183BF3E800859244 /* Build configuration list for PBXNativeTarget "zooom3" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				6ED47B93183BF3E800859244 /* Debug */,

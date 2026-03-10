@@ -311,4 +311,33 @@
     XCTAssertFalse([preferences hoverModeEnabled], "setToDefaults should reset hover mode to NO");
 }
 
+#pragma mark - Conflict detection in hover mode
+
+- (void)testConflictInHoverModeWithSameModifiersDifferentButtons {
+    [preferences setToDefaults];
+    [preferences setHoverModeEnabled:YES];
+    // Same modifiers (CMD+CTRL defaults) but different mouse buttons (Left vs Right)
+    // In hover mode, mouse buttons are irrelevant — this SHOULD conflict
+    XCTAssertTrue([preferences hasConflictingConfig],
+                  "Same modifiers with different buttons should conflict when hover mode is on");
+}
+
+- (void)testNoConflictInHoverModeWithDifferentModifiers {
+    [preferences setToDefaults];
+    [preferences setHoverModeEnabled:YES];
+    // Change resize modifiers so they differ from move
+    [preferences setResizeModifierKey:ALT_KEY enabled:YES];
+    [preferences setResizeModifierKey:CTRL_KEY enabled:NO];
+    XCTAssertFalse([preferences hasConflictingConfig],
+                   "Different modifiers should not conflict even in hover mode");
+}
+
+- (void)testNoConflictWithHoverModeOffDifferentButtons {
+    [preferences setToDefaults];
+    [preferences setHoverModeEnabled:NO];
+    // Same modifiers but different buttons — no conflict when hover mode is off
+    XCTAssertFalse([preferences hasConflictingConfig],
+                   "Same modifiers with different buttons should not conflict when hover mode is off");
+}
+
 @end

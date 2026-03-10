@@ -378,4 +378,18 @@
     XCTAssertFalse(warning.isHidden, @"Conflict warning should be visible");
 }
 
+- (void)testConflictWarningVisibleInHoverModeWithSameModifiers {
+    [preferences setToDefaults];
+    [preferences setHoverModeEnabled:YES];
+    // Same modifiers (defaults: CMD+CTRL) but different mouse buttons (Left vs Right)
+    // In hover mode, mouse buttons are irrelevant — warning should appear
+    [viewController syncControlStatesFromPreferences];
+    [viewController updateConflictWarning];
+
+    NSView *view = viewController.view;
+    NSTextField *warning = [self findLabelContaining:@"identical" inView:view];
+    XCTAssertNotNil(warning, @"Conflict warning label should exist");
+    XCTAssertFalse(warning.isHidden, @"Conflict warning should be visible in hover mode with same modifiers");
+}
+
 @end

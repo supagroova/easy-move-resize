@@ -162,8 +162,11 @@
 #pragma mark - Conflict validation
 
 - (BOOL)hasConflictingConfig {
+    BOOL sameModifiers = [self modifierFlags] == [self resizeModifierFlags];
+    // In hover mode mouse buttons are irrelevant — only modifiers matter
+    if ([self hoverModeEnabled]) return sameModifiers;
     if ([self moveMouseButton] != [self resizeMouseButton]) return NO;
-    return [self modifierFlags] == [self resizeModifierFlags];
+    return sameModifiers;
 }
 
 #pragma mark - Disabled apps

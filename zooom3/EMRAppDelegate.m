@@ -578,7 +578,7 @@ CGEventRef myCGEventCallback(CGEventTapProxy __unused proxy, CGEventType type, C
         popoverVC = [[EMRPopoverViewController alloc] initWithPreferences:preferences];
         popover = [[NSPopover alloc] init];
         popover.contentViewController = popoverVC;
-        popover.behavior = NSPopoverBehaviorTransient;
+        popover.behavior = NSPopoverBehaviorSemitransient;
 
         // Wire up popover control actions
         [self wirePopoverActions];

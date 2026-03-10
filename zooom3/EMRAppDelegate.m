@@ -1,6 +1,7 @@
 #import "EMRAppDelegate.h"
 #import "EMRMoveResize.h"
 #import "EMRPreferences.h"
+#import "EMRPopoverViewController.h"
 
 #define ALL_MODIFIERS (kCGEventFlagMaskShift | kCGEventFlagMaskCommand | \
     kCGEventFlagMaskAlphaShift | kCGEventFlagMaskAlternate | \
@@ -164,8 +165,6 @@ float getMinRefreshInterval(void) {
 }
 
 - (CGEventMask)eventMaskForCurrentPreferences {
-    // Note: kCGEventTapDisabledByTimeout/ByUserInput are always delivered to
-    // event taps regardless of mask, so no need to include them here.
     CGEventMask eventMask = CGEventMaskBit(kCGEventLeftMouseDown)
         | CGEventMaskBit(kCGEventRightMouseDown)
         | CGEventMaskBit(kCGEventOtherMouseDown)
@@ -499,8 +498,6 @@ CGEventRef myCGEventCallback(CGEventTapProxy __unused proxy, CGEventType type, C
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
     // Skip the entire accessibility check when running under XCTest.
-    // AXIsProcessTrustedWithOptions with kAXTrustedCheckOptionPrompt triggers
-    // a system modal dialog, which blocks the test runner.
     if (NSClassFromString(@"XCTestCase") != nil) {
         return;
     }
@@ -521,7 +518,6 @@ CGEventRef myCGEventCallback(CGEventTapProxy __unused proxy, CGEventType type, C
         exit(1);
     }
 
-    [self buildMenu];
     [self refreshCachedPreferences];
 
     CGEventMask eventMask = [self eventMaskForCurrentPreferences];
@@ -571,12 +567,87 @@ CGEventRef myCGEventCallback(CGEventTapProxy __unused proxy, CGEventType type, C
 }
 
 -(void)awakeFromNib{
-    NSImage *icon = [NSImage imageNamed:@"MenuIcon"];
     statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
-    [statusItem setMenu:statusMenu];
-    [statusItem setImage:icon];
-    [statusMenu setAutoenablesItems:NO];
-    [[statusMenu itemAtIndex:0] setEnabled:NO];
+    statusItem.button.image = [NSImage imageNamed:@"MenuIcon"];
+    statusItem.button.target = self;
+    statusItem.button.action = @selector(togglePopover:);
+}
+
+- (void)togglePopover:(id)sender {
+    if (popover == nil) {
+        popoverVC = [[EMRPopoverViewController alloc] initWithPreferences:preferences];
+        popover = [[NSPopover alloc] init];
+        popover.contentViewController = popoverVC;
+        popover.behavior = NSPopoverBehaviorTransient;
+
+        // Wire up popover control actions
+        [self wirePopoverActions];
+    }
+
+    if (popover.isShown) {
+        [popover performClose:sender];
+    } else {
+        [popoverVC syncControlStatesFromPreferences];
+        [popover showRelativeToRect:statusItem.button.bounds ofView:statusItem.button preferredEdge:NSMinYEdge];
+    }
+}
+
+- (void)wirePopoverActions {
+    NSView *rootView = popoverVC.view;
+    [self wireCheckboxActionsInView:rootView];
+    [self wirePopUpButtonActionsInView:rootView];
+}
+
+- (void)wireCheckboxActionsInView:(NSView *)view {
+    if ([view isKindOfClass:[NSButton class]] && ![view isKindOfClass:[NSPopUpButton class]]) {
+        NSButton *btn = (NSButton *)view;
+        NSString *ident = btn.identifier;
+        if (ident == nil) goto recurse;
+
+        if ([ident hasPrefix:@"move."]) {
+            btn.target = self;
+            btn.action = @selector(modifierToggle:);
+        } else if ([ident hasPrefix:@"resize."]) {
+            btn.target = self;
+            btn.action = @selector(resizeModifierToggle:);
+        } else if ([ident isEqualToString:@"hoverMode"]) {
+            btn.target = self;
+            btn.action = @selector(toggleHoverMode:);
+        } else if ([ident isEqualToString:@"bringToFront"]) {
+            btn.target = self;
+            btn.action = @selector(toggleBringWindowToFront:);
+        } else if ([ident isEqualToString:@"resizeOnly"]) {
+            btn.target = self;
+            btn.action = @selector(toggleResizeOnly:);
+        } else if ([ident isEqualToString:@"resetToDefaults"]) {
+            btn.target = self;
+            btn.action = @selector(resetToDefaults:);
+        } else if ([ident isEqualToString:@"quit"]) {
+            btn.target = self;
+            btn.action = @selector(exitApp:);
+        }
+    }
+recurse:
+    for (NSView *subview in view.subviews) {
+        [self wireCheckboxActionsInView:subview];
+    }
+}
+
+- (void)wirePopUpButtonActionsInView:(NSView *)view {
+    if ([view isKindOfClass:[NSPopUpButton class]]) {
+        NSPopUpButton *popup = (NSPopUpButton *)view;
+        NSString *ident = popup.identifier;
+        if ([ident isEqualToString:@"moveMouseButton"]) {
+            popup.target = self;
+            popup.action = @selector(setMoveMouseButton:);
+        } else if ([ident isEqualToString:@"resizeMouseButton"]) {
+            popup.target = self;
+            popup.action = @selector(setResizeMouseButton:);
+        }
+    }
+    for (NSView *subview in view.subviews) {
+        [self wirePopUpButtonActionsInView:subview];
+    }
 }
 
 - (void)enableRunLoopSource:(EMRMoveResize*)moveResize {
@@ -589,258 +660,27 @@ CGEventRef myCGEventCallback(CGEventTapProxy __unused proxy, CGEventType type, C
     CFRunLoopRemoveSource(CFRunLoopGetCurrent(), [moveResize runLoopSource], kCFRunLoopCommonModes);
 }
 
-#pragma mark - Menu construction (programmatic)
-
-- (NSMenuItem *)createModifierItem:(NSString *)title action:(SEL)action state:(BOOL)on {
-    NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:title action:action keyEquivalent:@""];
-    [item setTarget:self];
-    [item setState:on ? NSControlStateValueOn : NSControlStateValueOff];
-    return item;
-}
-
-- (NSMenuItem *)createMouseButtonSubmenu:(NSString *)label
-                            leftItem:(NSMenuItem **)outLeft
-                           rightItem:(NSMenuItem **)outRight
-                          middleItem:(NSMenuItem **)outMiddle
-                              action:(SEL)action
-                       selectedButton:(int)selected {
-    NSMenu *sub = [[NSMenu alloc] init];
-    NSMenuItem *leftItem = [[NSMenuItem alloc] initWithTitle:@"Left" action:action keyEquivalent:@""];
-    [leftItem setTarget:self];
-    [leftItem setTag:EMRMouseButtonLeft];
-    [leftItem setState:(selected == EMRMouseButtonLeft) ? NSControlStateValueOn : NSControlStateValueOff];
-    [sub addItem:leftItem];
-
-    NSMenuItem *rightItem = [[NSMenuItem alloc] initWithTitle:@"Right" action:action keyEquivalent:@""];
-    [rightItem setTarget:self];
-    [rightItem setTag:EMRMouseButtonRight];
-    [rightItem setState:(selected == EMRMouseButtonRight) ? NSControlStateValueOn : NSControlStateValueOff];
-    [sub addItem:rightItem];
-
-    NSMenuItem *middleItem = [[NSMenuItem alloc] initWithTitle:@"Middle" action:action keyEquivalent:@""];
-    [middleItem setTarget:self];
-    [middleItem setTag:EMRMouseButtonMiddle];
-    [middleItem setState:(selected == EMRMouseButtonMiddle) ? NSControlStateValueOn : NSControlStateValueOff];
-    [sub addItem:middleItem];
-
-    *outLeft = leftItem;
-    *outRight = rightItem;
-    *outMiddle = middleItem;
-
-    NSMenuItem *container = [[NSMenuItem alloc] initWithTitle:label action:nil keyEquivalent:@""];
-    [container setSubmenu:sub];
-    return container;
-}
-
-- (void)buildMenu {
-    // XIB provides: [0] "Zooom3" (title), [1] "Disabled", [2] separator,
-    //               [3] "Bring Window to Front", [4] "Resize only", ...
-    // We insert programmatic Move/Resize sections at index 3 (before "Bring Window to Front").
-    NSInteger insertIdx = 3;
-
-    // --- Move section ---
-    NSSet *moveFlags = [preferences getFlagStringSet];
-    BOOL moveResizeOnly = [preferences resizeOnly];
-
-    NSMenuItem *moveHeader = [[NSMenuItem alloc] initWithTitle:@"Move:" action:nil keyEquivalent:@""];
-    [moveHeader setEnabled:NO];
-    [statusMenu insertItem:moveHeader atIndex:insertIdx++];
-
-    moveAltMenu = [self createModifierItem:ALT_KEY action:@selector(modifierToggle:) state:[moveFlags containsObject:ALT_KEY]];
-    [moveAltMenu setIndentationLevel:1];
-    [statusMenu insertItem:moveAltMenu atIndex:insertIdx++];
-
-    moveCmdMenu = [self createModifierItem:CMD_KEY action:@selector(modifierToggle:) state:[moveFlags containsObject:CMD_KEY]];
-    [moveCmdMenu setIndentationLevel:1];
-    [statusMenu insertItem:moveCmdMenu atIndex:insertIdx++];
-
-    moveCtrlMenu = [self createModifierItem:CTRL_KEY action:@selector(modifierToggle:) state:[moveFlags containsObject:CTRL_KEY]];
-    [moveCtrlMenu setIndentationLevel:1];
-    [statusMenu insertItem:moveCtrlMenu atIndex:insertIdx++];
-
-    moveShiftMenu = [self createModifierItem:SHIFT_KEY action:@selector(modifierToggle:) state:[moveFlags containsObject:SHIFT_KEY]];
-    [moveShiftMenu setIndentationLevel:1];
-    [statusMenu insertItem:moveShiftMenu atIndex:insertIdx++];
-
-    moveFnMenu = [self createModifierItem:FN_KEY action:@selector(modifierToggle:) state:[moveFlags containsObject:FN_KEY]];
-    [moveFnMenu setIndentationLevel:1];
-    [statusMenu insertItem:moveFnMenu atIndex:insertIdx++];
-
-    int moveBtn = [preferences moveMouseButton];
-    NSMenuItem *tmpLeft, *tmpRight, *tmpMiddle;
-    NSMenuItem *moveBtnContainer = [self createMouseButtonSubmenu:@"Mouse Button"
-                                                        leftItem:&tmpLeft
-                                                       rightItem:&tmpRight
-                                                      middleItem:&tmpMiddle
-                                                          action:@selector(setMoveMouseButton:)
-                                                   selectedButton:moveBtn];
-    moveMouseButtonLeftMenu = tmpLeft;
-    moveMouseButtonRightMenu = tmpRight;
-    moveMouseButtonMiddleMenu = tmpMiddle;
-    [moveBtnContainer setIndentationLevel:1];
-    [statusMenu insertItem:moveBtnContainer atIndex:insertIdx++];
-
-    // Separator between Move and Resize
-    [statusMenu insertItem:[NSMenuItem separatorItem] atIndex:insertIdx++];
-
-    // --- Resize section ---
-    NSSet *resizeFlags = [preferences getResizeFlagStringSet];
-
-    NSMenuItem *resizeHeader = [[NSMenuItem alloc] initWithTitle:@"Resize:" action:nil keyEquivalent:@""];
-    [resizeHeader setEnabled:NO];
-    [statusMenu insertItem:resizeHeader atIndex:insertIdx++];
-
-    resizeAltMenu = [self createModifierItem:ALT_KEY action:@selector(resizeModifierToggle:) state:[resizeFlags containsObject:ALT_KEY]];
-    [resizeAltMenu setIndentationLevel:1];
-    [statusMenu insertItem:resizeAltMenu atIndex:insertIdx++];
-
-    resizeCmdMenu = [self createModifierItem:CMD_KEY action:@selector(resizeModifierToggle:) state:[resizeFlags containsObject:CMD_KEY]];
-    [resizeCmdMenu setIndentationLevel:1];
-    [statusMenu insertItem:resizeCmdMenu atIndex:insertIdx++];
-
-    resizeCtrlMenu = [self createModifierItem:CTRL_KEY action:@selector(resizeModifierToggle:) state:[resizeFlags containsObject:CTRL_KEY]];
-    [resizeCtrlMenu setIndentationLevel:1];
-    [statusMenu insertItem:resizeCtrlMenu atIndex:insertIdx++];
-
-    resizeShiftMenu = [self createModifierItem:SHIFT_KEY action:@selector(resizeModifierToggle:) state:[resizeFlags containsObject:SHIFT_KEY]];
-    [resizeShiftMenu setIndentationLevel:1];
-    [statusMenu insertItem:resizeShiftMenu atIndex:insertIdx++];
-
-    resizeFnMenu = [self createModifierItem:FN_KEY action:@selector(resizeModifierToggle:) state:[resizeFlags containsObject:FN_KEY]];
-    [resizeFnMenu setIndentationLevel:1];
-    [statusMenu insertItem:resizeFnMenu atIndex:insertIdx++];
-
-    int resizeBtn = [preferences resizeMouseButton];
-    NSMenuItem *tmpLeft2, *tmpRight2, *tmpMiddle2;
-    NSMenuItem *resizeBtnContainer = [self createMouseButtonSubmenu:@"Mouse Button"
-                                                           leftItem:&tmpLeft2
-                                                          rightItem:&tmpRight2
-                                                         middleItem:&tmpMiddle2
-                                                             action:@selector(setResizeMouseButton:)
-                                                      selectedButton:resizeBtn];
-    resizeMouseButtonLeftMenu = tmpLeft2;
-    resizeMouseButtonRightMenu = tmpRight2;
-    resizeMouseButtonMiddleMenu = tmpMiddle2;
-    [resizeBtnContainer setIndentationLevel:1];
-    [statusMenu insertItem:resizeBtnContainer atIndex:insertIdx++];
-
-    // Conflict warning (hidden by default, shown when config conflicts)
-    conflictWarningMenu = [[NSMenuItem alloc] initWithTitle:@"\u26A0\uFE0F Move and Resize have identical settings" action:nil keyEquivalent:@""];
-    [conflictWarningMenu setEnabled:NO];
-    [conflictWarningMenu setHidden:YES];
-    [statusMenu insertItem:conflictWarningMenu atIndex:insertIdx++];
-
-    // Separator before hover mode / "Bring Window to Front"
-    [statusMenu insertItem:[NSMenuItem separatorItem] atIndex:insertIdx++];
-
-    // --- Hover mode toggle ---
-    hoverModeMenu = [[NSMenuItem alloc] initWithTitle:@"Hover to Move/Resize (no click)" action:@selector(toggleHoverMode:) keyEquivalent:@""];
-    [hoverModeMenu setTarget:self];
-    [hoverModeMenu setState:[preferences hoverModeEnabled] ? NSControlStateValueOn : NSControlStateValueOff];
-    [statusMenu insertItem:hoverModeMenu atIndex:insertIdx++];
-
-    // --- Non-programmatic items (from XIB) follow: Bring Window to Front, Resize only, etc. ---
-    // Set their initial states
-    [_disabledMenu setState:NSControlStateValueOff];
-    [_bringWindowFrontMenu setState:[preferences shouldBringWindowToFront] ? NSControlStateValueOn : NSControlStateValueOff];
-    [_resizeOnlyMenu setState:moveResizeOnly ? NSControlStateValueOn : NSControlStateValueOff];
-
-    // Grey out Move section when resizeOnly is on
-    [self updateMoveMenuEnabled:!moveResizeOnly];
-
-    // Update conflict warning visibility
-    [self updateConflictWarning];
-}
-
-- (void)updateMoveMenuEnabled:(BOOL)enabled {
-    [moveAltMenu setEnabled:enabled];
-    [moveCmdMenu setEnabled:enabled];
-    [moveCtrlMenu setEnabled:enabled];
-    [moveShiftMenu setEnabled:enabled];
-    [moveFnMenu setEnabled:enabled];
-    // Mouse button submenu parent
-    NSMenuItem *moveBtnParent = [moveMouseButtonLeftMenu parentItem];
-    if (moveBtnParent == nil) {
-        // Find parent by traversing — the submenu container is the item whose submenu contains our items
-        for (NSInteger i = 0; i < [statusMenu numberOfItems]; i++) {
-            NSMenuItem *item = [statusMenu itemAtIndex:i];
-            if ([[item submenu] indexOfItem:moveMouseButtonLeftMenu] != -1) {
-                moveBtnParent = item;
-                break;
-            }
-        }
-    }
-    [moveBtnParent setEnabled:enabled];
-}
-
-- (void)updateConflictWarning {
-    BOOL conflict = [preferences hasConflictingConfig];
-    [conflictWarningMenu setHidden:!conflict];
-}
-
-- (void)updateMouseButtonRadioState:(int)selectedButton
-                               left:(NSMenuItem *)leftItem
-                              right:(NSMenuItem *)rightItem
-                             middle:(NSMenuItem *)middleItem {
-    [leftItem setState:(selectedButton == EMRMouseButtonLeft) ? NSControlStateValueOn : NSControlStateValueOff];
-    [rightItem setState:(selectedButton == EMRMouseButtonRight) ? NSControlStateValueOn : NSControlStateValueOff];
-    [middleItem setState:(selectedButton == EMRMouseButtonMiddle) ? NSControlStateValueOn : NSControlStateValueOff];
-}
-
-- (void)syncMenuStatesFromPreferences {
-    // Move modifier checkmarks
-    NSSet *moveFlags = [preferences getFlagStringSet];
-    [moveAltMenu setState:[moveFlags containsObject:ALT_KEY] ? NSControlStateValueOn : NSControlStateValueOff];
-    [moveCmdMenu setState:[moveFlags containsObject:CMD_KEY] ? NSControlStateValueOn : NSControlStateValueOff];
-    [moveCtrlMenu setState:[moveFlags containsObject:CTRL_KEY] ? NSControlStateValueOn : NSControlStateValueOff];
-    [moveShiftMenu setState:[moveFlags containsObject:SHIFT_KEY] ? NSControlStateValueOn : NSControlStateValueOff];
-    [moveFnMenu setState:[moveFlags containsObject:FN_KEY] ? NSControlStateValueOn : NSControlStateValueOff];
-
-    // Resize modifier checkmarks
-    NSSet *resizeFlags = [preferences getResizeFlagStringSet];
-    [resizeAltMenu setState:[resizeFlags containsObject:ALT_KEY] ? NSControlStateValueOn : NSControlStateValueOff];
-    [resizeCmdMenu setState:[resizeFlags containsObject:CMD_KEY] ? NSControlStateValueOn : NSControlStateValueOff];
-    [resizeCtrlMenu setState:[resizeFlags containsObject:CTRL_KEY] ? NSControlStateValueOn : NSControlStateValueOff];
-    [resizeShiftMenu setState:[resizeFlags containsObject:SHIFT_KEY] ? NSControlStateValueOn : NSControlStateValueOff];
-    [resizeFnMenu setState:[resizeFlags containsObject:FN_KEY] ? NSControlStateValueOn : NSControlStateValueOff];
-
-    // Mouse button radio states
-    [self updateMouseButtonRadioState:[preferences moveMouseButton]
-                                 left:moveMouseButtonLeftMenu right:moveMouseButtonRightMenu middle:moveMouseButtonMiddleMenu];
-    [self updateMouseButtonRadioState:[preferences resizeMouseButton]
-                                 left:resizeMouseButtonLeftMenu right:resizeMouseButtonRightMenu middle:resizeMouseButtonMiddleMenu];
-
-    // Other toggles
-    [_bringWindowFrontMenu setState:[preferences shouldBringWindowToFront] ? NSControlStateValueOn : NSControlStateValueOff];
-    [_resizeOnlyMenu setState:[preferences resizeOnly] ? NSControlStateValueOn : NSControlStateValueOff];
-    [hoverModeMenu setState:[preferences hoverModeEnabled] ? NSControlStateValueOn : NSControlStateValueOff];
-    [_disabledMenu setState:NSControlStateValueOff];
-
-    // Resize-only greys out Move section
-    [self updateMoveMenuEnabled:![preferences resizeOnly]];
-
-    // Conflict warning
-    [self updateConflictWarning];
-}
-
 #pragma mark - IBActions
 
 - (IBAction)modifierToggle:(id)sender {
-    NSMenuItem *menu = (NSMenuItem*)sender;
-    BOOL newState = ![menu state];
-    [menu setState:newState];
-    [preferences setModifierKey:[menu title] enabled:newState];
+    NSButton *btn = (NSButton *)sender;
+    // Extract modifier key from identifier (e.g. "move.CMD" -> "CMD")
+    NSString *ident = btn.identifier;
+    NSString *key = [ident substringFromIndex:[@"move." length]];
+    BOOL enabled = (btn.state == NSControlStateValueOn);
+    [preferences setModifierKey:key enabled:enabled];
     [self refreshCachedPreferences];
-    [self updateConflictWarning];
+    [popoverVC updateConflictWarning];
 }
 
 - (IBAction)resizeModifierToggle:(id)sender {
-    NSMenuItem *menu = (NSMenuItem*)sender;
-    BOOL newState = ![menu state];
-    [menu setState:newState];
-    [preferences setResizeModifierKey:[menu title] enabled:newState];
+    NSButton *btn = (NSButton *)sender;
+    NSString *ident = btn.identifier;
+    NSString *key = [ident substringFromIndex:[@"resize." length]];
+    BOOL enabled = (btn.state == NSControlStateValueOn);
+    [preferences setResizeModifierKey:key enabled:enabled];
     [self refreshCachedPreferences];
-    [self updateConflictWarning];
+    [popoverVC updateConflictWarning];
 }
 
 - (IBAction)resetToDefaults:(id)sender {
@@ -849,51 +689,32 @@ CGEventRef myCGEventCallback(CGEventTapProxy __unused proxy, CGEventType type, C
     [moveResize setTracking:0];
     [moveResize setIsResizing:NO];
     [preferences setToDefaults];
-    [self syncMenuStatesFromPreferences];
-    [self setMenusEnabled:YES];
+    [popoverVC syncControlStatesFromPreferences];
     [self enableRunLoopSource:moveResize];
     [self refreshCachedPreferences];
     [self recreateEventTap];
 }
 
 - (IBAction)toggleBringWindowToFront:(id)sender {
-    NSMenuItem *menu = (NSMenuItem*)sender;
-    BOOL newState = ![menu state];
-    [menu setState:newState];
-    [preferences setShouldBringWindowToFront:newState];
+    NSButton *btn = (NSButton *)sender;
+    [preferences setShouldBringWindowToFront:(btn.state == NSControlStateValueOn)];
 }
 
-
 - (IBAction)toggleDisabled:(id)sender {
-    EMRMoveResize* moveResize = [EMRMoveResize instance];
-    if ([_disabledMenu state] == 0) {
-        [_disabledMenu setState:YES];
-        [self setMenusEnabled:NO];
-        [self disableRunLoopSource:moveResize];
-    }
-    else {
-        [_disabledMenu setState:NO];
-        [self setMenusEnabled:YES];
-        [self enableRunLoopSource:moveResize];
-    }
+    // Disabled toggle is no longer in the popover (was menu-only)
 }
 
 - (IBAction)toggleResizeOnly:(id)sender {
-    NSMenuItem *menu = (NSMenuItem*)sender;
-    BOOL newState = ![menu state];
-    [menu setState:newState];
-    [preferences setResizeOnly:newState];
-    [self updateMoveMenuEnabled:!newState];
+    NSButton *btn = (NSButton *)sender;
+    [preferences setResizeOnly:(btn.state == NSControlStateValueOn)];
 }
 
 - (IBAction)toggleHoverMode:(id)sender {
-    NSMenuItem *menu = (NSMenuItem*)sender;
-    BOOL newState = ![menu state];
-    [menu setState:newState];
-    [preferences setHoverModeEnabled:newState];
+    NSButton *btn = (NSButton *)sender;
+    BOOL enabled = (btn.state == NSControlStateValueOn);
+    [preferences setHoverModeEnabled:enabled];
 
-    if (!newState) {
-        // Disabling: clear hover state before rebuilding tap
+    if (!enabled) {
         EMRMoveResize *moveResize = [EMRMoveResize instance];
         [moveResize setIsHoverActive:NO];
         [moveResize setTracking:0];
@@ -902,39 +723,28 @@ CGEventRef myCGEventCallback(CGEventTapProxy __unused proxy, CGEventType type, C
 
     [self refreshCachedPreferences];
     [self recreateEventTap];
+    [popoverVC syncControlStatesFromPreferences];
 }
 
 - (IBAction)setMoveMouseButton:(id)sender {
-    NSMenuItem *menu = (NSMenuItem*)sender;
-    int button = (int)[menu tag];
+    NSPopUpButton *popup = (NSPopUpButton *)sender;
+    int button = (int)[[popup selectedItem] tag];
     [preferences setMoveMouseButton:button];
-    [self updateMouseButtonRadioState:button left:moveMouseButtonLeftMenu right:moveMouseButtonRightMenu middle:moveMouseButtonMiddleMenu];
     [self refreshCachedPreferences];
-    [self updateConflictWarning];
+    [popoverVC updateConflictWarning];
 }
 
 - (IBAction)setResizeMouseButton:(id)sender {
-    NSMenuItem *menu = (NSMenuItem*)sender;
-    int button = (int)[menu tag];
+    NSPopUpButton *popup = (NSPopUpButton *)sender;
+    int button = (int)[[popup selectedItem] tag];
     [preferences setResizeMouseButton:button];
-    [self updateMouseButtonRadioState:button left:resizeMouseButtonLeftMenu right:resizeMouseButtonRightMenu middle:resizeMouseButtonMiddleMenu];
     [self refreshCachedPreferences];
-    [self updateConflictWarning];
+    [popoverVC updateConflictWarning];
 }
 
-- (IBAction)disableLastApp:(id)sender {
-    [preferences setDisabledForApp:[lastApp bundleIdentifier] withLocalizedName:[lastApp localizedName] disabled:YES];
-    [_lastAppMenu setEnabled:FALSE];
-    [self reconstructDisabledAppsSubmenu];
-}
 
-- (IBAction)enableDisabledApp:(id)sender {
-    NSString *bundleId = [sender representedObject];
-    [preferences setDisabledForApp:bundleId withLocalizedName:nil disabled:NO];
-    if (lastApp != nil && [[lastApp bundleIdentifier] isEqualToString:bundleId]) {
-        [_lastAppMenu setEnabled:YES];
-    }
-    [self reconstructDisabledAppsSubmenu];
+- (void)exitApp:(id)sender {
+    [NSApp terminate:nil];
 }
 
 #pragma mark - Accessor methods
@@ -953,8 +763,6 @@ CGEventRef myCGEventCallback(CGEventTapProxy __unused proxy, CGEventType type, C
 }
 - (void) setMostRecentApp:(NSRunningApplication*)app {
     lastApp = app;
-    [_lastAppMenu setTitle:[NSString stringWithFormat:@"Disable for %@", [app localizedName]]];
-    [_lastAppMenu setEnabled:YES];
 }
 - (NSDictionary*) getDisabledApps {
     return [preferences getDisabledApps];
@@ -966,41 +774,8 @@ CGEventRef myCGEventCallback(CGEventTapProxy __unused proxy, CGEventType type, C
     return [preferences resizeOnly];
 }
 
-- (void)setMenusEnabled:(BOOL)enabled {
-    // Move section
-    [moveAltMenu setEnabled:enabled];
-    [moveCmdMenu setEnabled:enabled];
-    [moveCtrlMenu setEnabled:enabled];
-    [moveShiftMenu setEnabled:enabled];
-    [moveFnMenu setEnabled:enabled];
-
-    // Resize section
-    [resizeAltMenu setEnabled:enabled];
-    [resizeCmdMenu setEnabled:enabled];
-    [resizeCtrlMenu setEnabled:enabled];
-    [resizeShiftMenu setEnabled:enabled];
-    [resizeFnMenu setEnabled:enabled];
-
-    // Other items
-    [_bringWindowFrontMenu setEnabled:enabled];
-    [_resizeOnlyMenu setEnabled:enabled];
-    [hoverModeMenu setEnabled:enabled];
-
-    // When re-enabling, respect resizeOnly state for Move section
-    if (enabled && [preferences resizeOnly]) {
-        [self updateMoveMenuEnabled:NO];
-    }
-}
-
 - (void)reconstructDisabledAppsSubmenu {
-    NSMenu *submenu = [[NSMenu alloc] init];
-    NSDictionary *disabledApps = [self getDisabledApps];
-    for (id bundleIdentifier in disabledApps) {
-        NSMenuItem *item = [submenu addItemWithTitle:[disabledApps objectForKey:bundleIdentifier] action:@selector(enableDisabledApp:) keyEquivalent:@""];
-        [item setRepresentedObject:bundleIdentifier];
-    }
-    [_disabledAppsMenu setSubmenu:submenu];
-    [_disabledAppsMenu setEnabled:([disabledApps count] > 0)];
+    // Disabled apps UI removed — method kept for disabled apps check in event callback
 }
 
 @end

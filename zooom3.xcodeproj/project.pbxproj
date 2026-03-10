@@ -21,6 +21,8 @@
 		F907A25928093AED2C89550E /* EMRMoveResize.m in Sources */ = {isa = PBXBuildFile; fileRef = F907AEB04B0AF90540F6EF00 /* EMRMoveResize.m */; };
 		F907A53FB2CAEBEB31895CD2 /* contributing.md in Resources */ = {isa = PBXBuildFile; fileRef = F907A3568D9301F4E6A9736F /* contributing.md */; };
 		F907ABDDEEAF5BF83F0AF9EA /* readme.md in Resources */ = {isa = PBXBuildFile; fileRef = F907A4D20267246716869421 /* readme.md */; };
+		CC000001A0000001000000A1 /* EMRPopoverViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CC000003A0000003000000A3 /* EMRPopoverViewController.m */; };
+		CC000005A0000005000000A5 /* EMRPopoverViewControllerTest.m in Sources */ = {isa = PBXBuildFile; fileRef = CC000006A0000006000000A6 /* EMRPopoverViewControllerTest.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -62,6 +64,9 @@
 		F907AB0E17E61960C00A089F /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = file.gitignore; path = .gitignore; sourceTree = "<group>"; };
 		F907ACD4ED7B8961880D12BD /* EMRMoveResize.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EMRMoveResize.h; sourceTree = "<group>"; };
 		F907AEB04B0AF90540F6EF00 /* EMRMoveResize.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EMRMoveResize.m; sourceTree = "<group>"; };
+		CC000002A0000002000000A2 /* EMRPopoverViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EMRPopoverViewController.h; sourceTree = "<group>"; };
+		CC000003A0000003000000A3 /* EMRPopoverViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EMRPopoverViewController.m; sourceTree = "<group>"; };
+		CC000006A0000006000000A6 /* EMRPopoverViewControllerTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EMRPopoverViewControllerTest.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -90,6 +95,7 @@
 				65CF01641F229C34002259F2 /* EMRPreferencesTest.m */,
 				AA0001021A229C34002259F2 /* EMRMoveResizeTest.m */,
 				AA0001041A229C34002259F2 /* EMRAppDelegateTest.m */,
+				CC000006A0000006000000A6 /* EMRPopoverViewControllerTest.m */,
 				65CF01661F229C34002259F2 /* Info.plist */,
 			);
 			path = "zooom3Tests";
@@ -151,6 +157,8 @@
 				F907AEB04B0AF90540F6EF00 /* EMRMoveResize.m */,
 				52B5E8F51C513E3D0055C181 /* EMRPreferences.m */,
 				52B5E8F81C513E7A0055C181 /* EMRPreferences.h */,
+				CC000002A0000002000000A2 /* EMRPopoverViewController.h */,
+				CC000003A0000003000000A3 /* EMRPopoverViewController.m */,
 			);
 			path = "zooom3";
 			sourceTree = "<group>";
@@ -271,6 +279,7 @@
 				65CF01651F229C34002259F2 /* EMRPreferencesTest.m in Sources */,
 				AA0001011A229C34002259F2 /* EMRMoveResizeTest.m in Sources */,
 				AA0001031A229C34002259F2 /* EMRAppDelegateTest.m in Sources */,
+				CC000005A0000005000000A5 /* EMRPopoverViewControllerTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -282,6 +291,7 @@
 				52B5E8F61C513E3D0055C181 /* EMRPreferences.m in Sources */,
 				6ED47B78183BF3E800859244 /* EMRAppDelegate.m in Sources */,
 				F907A25928093AED2C89550E /* EMRMoveResize.m in Sources */,
+				CC000001A0000001000000A1 /* EMRPopoverViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

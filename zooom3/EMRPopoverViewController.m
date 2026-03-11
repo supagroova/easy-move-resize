@@ -119,6 +119,11 @@
 
     [stack addArrangedSubview:[self createSeparator]];
 
+    // Vertical spacer pushes buttons to the bottom
+    NSView *verticalSpacer = [[NSView alloc] init];
+    [verticalSpacer setContentHuggingPriority:1 forOrientation:NSLayoutConstraintOrientationVertical];
+    [stack addArrangedSubview:verticalSpacer];
+
     // Reset and Quit buttons on same row
     _resetButton = [NSButton buttonWithTitle:@"Reset to Defaults" target:nil action:nil];
     _resetButton.identifier = @"resetToDefaults";
@@ -126,9 +131,11 @@
     _quitButton = [NSButton buttonWithTitle:@"Quit" target:nil action:nil];
     _quitButton.identifier = @"quit";
 
-    NSStackView *buttonRow = [NSStackView stackViewWithViews:@[_resetButton, _quitButton]];
+    NSView *buttonSpacer = [[NSView alloc] init];
+    [buttonSpacer setContentHuggingPriority:1 forOrientation:NSLayoutConstraintOrientationHorizontal];
+    NSStackView *buttonRow = [NSStackView stackViewWithViews:@[_resetButton, buttonSpacer, _quitButton]];
     buttonRow.orientation = NSUserInterfaceLayoutOrientationHorizontal;
-    buttonRow.spacing = 8;
+    buttonRow.distribution = NSStackViewDistributionFill;
     [stack addArrangedSubview:buttonRow];
 
     self.view = container;

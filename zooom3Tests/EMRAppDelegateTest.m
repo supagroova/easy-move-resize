@@ -10,6 +10,9 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
 @interface EMRAppDelegate (Testing)
 - (void)refreshCachedPreferences;
 - (BOOL)resizeOnly;
+- (void)ensurePopoverCreated;
+- (void)installPopoverEventMonitor;
+- (void)removePopoverEventMonitor;
 @end
 
 @interface EMRAppDelegateTest : XCTestCase
@@ -700,6 +703,33 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     [mr setIsHoverActive:NO];
     [mr setTracking:0];
     CFRelease(event);
+}
+
+#pragma mark - Popover dismissal on outside click
+
+- (void)testPopoverDelegateIsSet {
+    [delegate ensurePopoverCreated];
+    NSPopover *p = [delegate valueForKey:@"popover"];
+    XCTAssertNotNil(p, "Popover should be created");
+    XCTAssertEqualObjects(p.delegate, delegate, "Popover delegate should be the app delegate");
+}
+
+- (void)testPopoverEventMonitorInstalledWhenShown {
+    [delegate ensurePopoverCreated];
+    // Simulate showing by calling the monitor installation directly
+    [delegate installPopoverEventMonitor];
+    id monitor = [delegate valueForKey:@"popoverEventMonitor"];
+    XCTAssertNotNil(monitor, "Global event monitor should be installed when popover is shown");
+    // Clean up
+    [delegate removePopoverEventMonitor];
+}
+
+- (void)testPopoverEventMonitorRemovedWhenClosed {
+    [delegate ensurePopoverCreated];
+    [delegate installPopoverEventMonitor];
+    [delegate removePopoverEventMonitor];
+    id monitor = [delegate valueForKey:@"popoverEventMonitor"];
+    XCTAssertNil(monitor, "Global event monitor should be removed when popover closes");
 }
 
 - (void)testMouseUpWithoutHoverClearsTracking {

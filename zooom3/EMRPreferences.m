@@ -162,8 +162,23 @@
 #pragma mark - Conflict validation
 
 - (BOOL)hasConflictingConfig {
-    if ([self moveMouseButton] != [self resizeMouseButton]) return NO;
-    return [self modifierFlags] == [self resizeModifierFlags];
+    NSString *moveFlagStr = [userDefaults stringForKey:MODIFIER_FLAGS_DEFAULTS_KEY];
+    NSString *resizeFlagStr = [userDefaults stringForKey:RESIZE_MODIFIER_FLAGS_DEFAULTS_KEY];
+    int moveFlags = [self modifierFlags];
+    int resizeFlags = [self resizeModifierFlags];
+    BOOL sameModifiers = moveFlags == resizeFlags;
+    int moveBtn = [self moveMouseButton];
+    int resizeBtn = [self resizeMouseButton];
+    BOOL hover = [self hoverModeEnabled];
+
+    // In hover mode mouse buttons are irrelevant — only modifiers matter
+    if (hover) {
+        return sameModifiers;
+    }
+    if (moveBtn != resizeBtn) {
+        return NO;
+    }
+    return sameModifiers;
 }
 
 #pragma mark - Disabled apps

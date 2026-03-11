@@ -1,7 +1,8 @@
 #import <Cocoa/Cocoa.h>
 
-@interface EMRAppDelegate : NSObject <NSApplicationDelegate> {
-    IBOutlet NSMenu *statusMenu;
+@class EMRPopoverViewController;
+
+@interface EMRAppDelegate : NSObject <NSApplicationDelegate, NSPopoverDelegate> {
     NSStatusItem * statusItem;
     int keyModifierFlags;
     int resizeKeyModifierFlags;
@@ -10,29 +11,9 @@
     BOOL cachedHasConflict;
     NSRunningApplication *lastApp;
 
-    // Programmatic menu items — Move section
-    NSMenuItem *moveAltMenu;
-    NSMenuItem *moveCmdMenu;
-    NSMenuItem *moveCtrlMenu;
-    NSMenuItem *moveShiftMenu;
-    NSMenuItem *moveFnMenu;
-    NSMenuItem *moveMouseButtonLeftMenu;
-    NSMenuItem *moveMouseButtonRightMenu;
-    NSMenuItem *moveMouseButtonMiddleMenu;
-
-    // Programmatic menu items — Resize section
-    NSMenuItem *resizeAltMenu;
-    NSMenuItem *resizeCmdMenu;
-    NSMenuItem *resizeCtrlMenu;
-    NSMenuItem *resizeShiftMenu;
-    NSMenuItem *resizeFnMenu;
-    NSMenuItem *resizeMouseButtonLeftMenu;
-    NSMenuItem *resizeMouseButtonRightMenu;
-    NSMenuItem *resizeMouseButtonMiddleMenu;
-
-    // Programmatic menu items — other
-    NSMenuItem *conflictWarningMenu;
-    NSMenuItem *hoverModeMenu;
+    NSPopover *popover;
+    EMRPopoverViewController *popoverVC;
+    id popoverEventMonitor;
 
     BOOL cachedHoverModeEnabled;
 }
@@ -50,16 +31,8 @@
 - (IBAction)toggleResizeOnly:(id)sender;
 - (IBAction)setMoveMouseButton:(id)sender;
 - (IBAction)setResizeMouseButton:(id)sender;
-- (IBAction)disableLastApp:(id)sender;
-- (IBAction)enableDisabledApp:(id)sender;
 - (IBAction)toggleHoverMode:(id)sender;
 
-// XIB-wired outlets — kept for items that remain in the XIB
-@property (weak) IBOutlet NSMenuItem *disabledMenu;
-@property (weak) IBOutlet NSMenuItem *bringWindowFrontMenu;
-@property (weak) IBOutlet NSMenuItem *resizeOnlyMenu;
-@property (weak) IBOutlet NSMenuItem *disabledAppsMenu;
-@property (weak) IBOutlet NSMenuItem *lastAppMenu;
 @property (nonatomic) BOOL sessionActive;
 @property float moveFilterInterval;
 @property float resizeFilterInterval;

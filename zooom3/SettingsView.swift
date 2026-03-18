@@ -20,6 +20,7 @@ import AppKit
         let callbacks = SettingsCallbacks()
         let view = SettingsView(preferences: preferences, callbacks: callbacks)
         let hosting = NSHostingController(rootView: view)
+        hosting.sizingOptions = .preferredContentSize
         self.viewController = hosting
         super.init()
 
@@ -88,7 +89,6 @@ struct SettingsView: View {
             conflictSection
             togglesSection
             Divider()
-            Spacer()
             buttonsSection
         }
         .padding(16)

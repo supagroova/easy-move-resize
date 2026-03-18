@@ -1,7 +1,7 @@
 #import "EMRAppDelegate.h"
 #import "EMRMoveResize.h"
-#import "EMRPreferences.h"
 #import "EMRPopoverViewController.h"
+#import "Zooom3-Swift.h"
 
 #define ALL_MODIFIERS (kCGEventFlagMaskShift | kCGEventFlagMaskCommand | \
     kCGEventFlagMaskAlphaShift | kCGEventFlagMaskAlternate | \
@@ -138,14 +138,14 @@ float getMinRefreshInterval(void) {
 }
 
 @implementation EMRAppDelegate {
-    EMRPreferences *preferences;
+    Preferences *preferences;
 }
 
 - (id) init  {
     self = [super init];
     if (self) {
         NSUserDefaults *userDefaults = [[NSUserDefaults alloc] initWithSuiteName:@"userPrefs"];
-        preferences = [[EMRPreferences alloc] initWithUserDefaults:userDefaults];
+        preferences = [[Preferences alloc] initWithUserDefaults:userDefaults];
 
         // Window move and resize based on minimum refresh interval across all screens
         const float refreshRate = getMinRefreshInterval();
@@ -156,10 +156,10 @@ float getMinRefreshInterval(void) {
 }
 
 - (void)refreshCachedPreferences {
-    keyModifierFlags = [preferences modifierFlags];
-    resizeKeyModifierFlags = [preferences resizeModifierFlags];
-    cachedMoveMouseButton = [preferences moveMouseButton];
-    cachedResizeMouseButton = [preferences resizeMouseButton];
+    keyModifierFlags = (int)[preferences modifierFlags];
+    resizeKeyModifierFlags = (int)[preferences resizeModifierFlagsValue];
+    cachedMoveMouseButton = (int)[preferences moveMouseButtonValue];
+    cachedResizeMouseButton = (int)[preferences resizeMouseButtonValue];
     cachedHasConflict = [preferences hasConflictingConfig];
     cachedHoverModeEnabled = [preferences hoverModeEnabled];
 }
@@ -175,7 +175,7 @@ float getMinRefreshInterval(void) {
         | CGEventMaskBit(kCGEventRightMouseUp)
         | CGEventMaskBit(kCGEventOtherMouseUp);
 
-    if ([preferences hoverModeEnabled]) {
+    if (preferences.hoverModeEnabled) {
         eventMask |= CGEventMaskBit(kCGEventFlagsChanged)
                    | CGEventMaskBit(kCGEventMouseMoved);
     }
@@ -756,7 +756,7 @@ recurse:
 - (IBAction)setMoveMouseButton:(id)sender {
     NSPopUpButton *popup = (NSPopUpButton *)sender;
     int button = (int)[[popup selectedItem] tag];
-    [preferences setMoveMouseButton:button];
+    [preferences setMoveMouseButton:(int)button];
     [self refreshCachedPreferences];
     [popoverVC updateConflictWarning];
 }
@@ -764,7 +764,7 @@ recurse:
 - (IBAction)setResizeMouseButton:(id)sender {
     NSPopUpButton *popup = (NSPopUpButton *)sender;
     int button = (int)[[popup selectedItem] tag];
-    [preferences setResizeMouseButton:button];
+    [preferences setResizeMouseButton:(int)button];
     [self refreshCachedPreferences];
     [popoverVC updateConflictWarning];
 }

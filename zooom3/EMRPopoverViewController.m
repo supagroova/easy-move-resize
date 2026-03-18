@@ -1,8 +1,8 @@
 #import "EMRPopoverViewController.h"
-#import "EMRPreferences.h"
+#import "Zooom3-Swift.h"
 
 @implementation EMRPopoverViewController {
-    EMRPreferences *_preferences;
+    Preferences *_preferences;
 
     // Move modifier checkboxes
     NSButton *_moveFnCheckbox;
@@ -36,7 +36,7 @@
     NSButton *_quitButton;
 }
 
-- (instancetype)initWithPreferences:(EMRPreferences *)preferences {
+- (instancetype)initWithPreferences:(Preferences *)preferences {
     self = [super initWithNibName:nil bundle:nil];
     if (self) {
         _preferences = preferences;
@@ -212,11 +212,11 @@
     popup.identifier = identifier;
 
     NSMenuItem *leftItem = [[NSMenuItem alloc] initWithTitle:@"Left" action:nil keyEquivalent:@""];
-    leftItem.tag = EMRMouseButtonLeft;
+    leftItem.tag = 0;  // MouseButton.left
     NSMenuItem *rightItem = [[NSMenuItem alloc] initWithTitle:@"Right" action:nil keyEquivalent:@""];
-    rightItem.tag = EMRMouseButtonRight;
+    rightItem.tag = 1;  // MouseButton.right
     NSMenuItem *middleItem = [[NSMenuItem alloc] initWithTitle:@"Middle" action:nil keyEquivalent:@""];
-    middleItem.tag = EMRMouseButtonMiddle;
+    middleItem.tag = 2;  // MouseButton.middle
 
     [popup.menu addItem:leftItem];
     [popup.menu addItem:rightItem];
@@ -238,23 +238,23 @@
 
     // Move modifiers
     NSSet *moveFlags = [_preferences getFlagStringSet];
-    _moveFnCheckbox.state = [moveFlags containsObject:FN_KEY] ? NSControlStateValueOn : NSControlStateValueOff;
-    _moveCtrlCheckbox.state = [moveFlags containsObject:CTRL_KEY] ? NSControlStateValueOn : NSControlStateValueOff;
-    _moveAltCheckbox.state = [moveFlags containsObject:ALT_KEY] ? NSControlStateValueOn : NSControlStateValueOff;
-    _moveShiftCheckbox.state = [moveFlags containsObject:SHIFT_KEY] ? NSControlStateValueOn : NSControlStateValueOff;
-    _moveCmdCheckbox.state = [moveFlags containsObject:CMD_KEY] ? NSControlStateValueOn : NSControlStateValueOff;
+    _moveFnCheckbox.state = [moveFlags containsObject:@"FN"] ? NSControlStateValueOn : NSControlStateValueOff;
+    _moveCtrlCheckbox.state = [moveFlags containsObject:@"CTRL"] ? NSControlStateValueOn : NSControlStateValueOff;
+    _moveAltCheckbox.state = [moveFlags containsObject:@"ALT"] ? NSControlStateValueOn : NSControlStateValueOff;
+    _moveShiftCheckbox.state = [moveFlags containsObject:@"SHIFT"] ? NSControlStateValueOn : NSControlStateValueOff;
+    _moveCmdCheckbox.state = [moveFlags containsObject:@"CMD"] ? NSControlStateValueOn : NSControlStateValueOff;
 
     // Resize modifiers
     NSSet *resizeFlags = [_preferences getResizeFlagStringSet];
-    _resizeFnCheckbox.state = [resizeFlags containsObject:FN_KEY] ? NSControlStateValueOn : NSControlStateValueOff;
-    _resizeCtrlCheckbox.state = [resizeFlags containsObject:CTRL_KEY] ? NSControlStateValueOn : NSControlStateValueOff;
-    _resizeAltCheckbox.state = [resizeFlags containsObject:ALT_KEY] ? NSControlStateValueOn : NSControlStateValueOff;
-    _resizeShiftCheckbox.state = [resizeFlags containsObject:SHIFT_KEY] ? NSControlStateValueOn : NSControlStateValueOff;
-    _resizeCmdCheckbox.state = [resizeFlags containsObject:CMD_KEY] ? NSControlStateValueOn : NSControlStateValueOff;
+    _resizeFnCheckbox.state = [resizeFlags containsObject:@"FN"] ? NSControlStateValueOn : NSControlStateValueOff;
+    _resizeCtrlCheckbox.state = [resizeFlags containsObject:@"CTRL"] ? NSControlStateValueOn : NSControlStateValueOff;
+    _resizeAltCheckbox.state = [resizeFlags containsObject:@"ALT"] ? NSControlStateValueOn : NSControlStateValueOff;
+    _resizeShiftCheckbox.state = [resizeFlags containsObject:@"SHIFT"] ? NSControlStateValueOn : NSControlStateValueOff;
+    _resizeCmdCheckbox.state = [resizeFlags containsObject:@"CMD"] ? NSControlStateValueOn : NSControlStateValueOff;
 
     // Mouse buttons
-    [_moveMouseButtonPopup selectItemWithTag:[_preferences moveMouseButton]];
-    [_resizeMouseButtonPopup selectItemWithTag:[_preferences resizeMouseButton]];
+    [_moveMouseButtonPopup selectItemWithTag:[_preferences moveMouseButtonValue]];
+    [_resizeMouseButtonPopup selectItemWithTag:[_preferences resizeMouseButtonValue]];
 
     // Boolean toggles
     BOOL hoverOn = _preferences.hoverModeEnabled;

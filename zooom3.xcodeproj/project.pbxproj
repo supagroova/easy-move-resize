@@ -7,22 +7,22 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		52B5E8F61C513E3D0055C181 /* EMRPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 52B5E8F51C513E3D0055C181 /* EMRPreferences.m */; };
-		65CF01651F229C34002259F2 /* EMRPreferencesTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 65CF01641F229C34002259F2 /* EMRPreferencesTest.m */; };
-		AA0001011A229C34002259F2 /* EMRMoveResizeTest.m in Sources */ = {isa = PBXBuildFile; fileRef = AA0001021A229C34002259F2 /* EMRMoveResizeTest.m */; };
-		AA0001031A229C34002259F2 /* EMRAppDelegateTest.m in Sources */ = {isa = PBXBuildFile; fileRef = AA0001041A229C34002259F2 /* EMRAppDelegateTest.m */; };
+		1322FE5C2F62DAB1003A9CF9 /* Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1322FE5B2F62DAB1003A9CF9 /* Preferences.swift */; };
+		1322FE5F2F62DAD7003A9CF9 /* PreferencesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1322FE5E2F62DAD7003A9CF9 /* PreferencesTests.swift */; };
 		6ED47B65183BF3E800859244 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6ED47B64183BF3E800859244 /* Cocoa.framework */; };
 		6ED47B6F183BF3E800859244 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6ED47B6D183BF3E800859244 /* InfoPlist.strings */; };
 		6ED47B71183BF3E800859244 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 6ED47B70183BF3E800859244 /* main.m */; };
 		6ED47B78183BF3E800859244 /* EMRAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 6ED47B77183BF3E800859244 /* EMRAppDelegate.m */; };
 		6ED47B7B183BF3E800859244 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6ED47B79183BF3E800859244 /* MainMenu.xib */; };
 		6ED47B7D183BF3E800859244 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6ED47B7C183BF3E800859244 /* Images.xcassets */; };
+		AA0001011A229C34002259F2 /* EMRMoveResizeTest.m in Sources */ = {isa = PBXBuildFile; fileRef = AA0001021A229C34002259F2 /* EMRMoveResizeTest.m */; };
+		AA0001031A229C34002259F2 /* EMRAppDelegateTest.m in Sources */ = {isa = PBXBuildFile; fileRef = AA0001041A229C34002259F2 /* EMRAppDelegateTest.m */; };
 		B02F18934323BB42D8CCAB05 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B02F125CE1BC18D269C53372 /* QuartzCore.framework */; };
+		CC000001A0000001000000A1 /* EMRPopoverViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CC000003A0000003000000A3 /* EMRPopoverViewController.m */; };
+		CC000005A0000005000000A5 /* EMRPopoverViewControllerTest.m in Sources */ = {isa = PBXBuildFile; fileRef = CC000006A0000006000000A6 /* EMRPopoverViewControllerTest.m */; };
 		F907A25928093AED2C89550E /* EMRMoveResize.m in Sources */ = {isa = PBXBuildFile; fileRef = F907AEB04B0AF90540F6EF00 /* EMRMoveResize.m */; };
 		F907A53FB2CAEBEB31895CD2 /* contributing.md in Resources */ = {isa = PBXBuildFile; fileRef = F907A3568D9301F4E6A9736F /* contributing.md */; };
 		F907ABDDEEAF5BF83F0AF9EA /* readme.md in Resources */ = {isa = PBXBuildFile; fileRef = F907A4D20267246716869421 /* readme.md */; };
-		CC000001A0000001000000A1 /* EMRPopoverViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CC000003A0000003000000A3 /* EMRPopoverViewController.m */; };
-		CC000005A0000005000000A5 /* EMRPopoverViewControllerTest.m in Sources */ = {isa = PBXBuildFile; fileRef = CC000006A0000006000000A6 /* EMRPopoverViewControllerTest.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -31,20 +31,19 @@
 			containerPortal = 6ED47B59183BF3E800859244 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 6ED47B60183BF3E800859244;
-			remoteInfo = "zooom3";
+			remoteInfo = zooom3;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		52B5E8F51C513E3D0055C181 /* EMRPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EMRPreferences.m; sourceTree = "<group>"; };
-		52B5E8F81C513E7A0055C181 /* EMRPreferences.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EMRPreferences.h; sourceTree = "<group>"; };
-		65CF01621F229C34002259F2 /* zooom3Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "zooom3Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		65CF01641F229C34002259F2 /* EMRPreferencesTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EMRPreferencesTest.m; sourceTree = "<group>"; };
+		1322FE5B2F62DAB1003A9CF9 /* Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preferences.swift; sourceTree = "<group>"; };
+		1322FE5D2F62DAC2003A9CF9 /* zooom3-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "zooom3-Bridging-Header.h"; sourceTree = "<group>"; };
+		1322FE5E2F62DAD7003A9CF9 /* PreferencesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesTests.swift; sourceTree = "<group>"; };
+		1322FE602F62DAD8003A9CF9 /* zooom3Tests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "zooom3Tests-Bridging-Header.h"; sourceTree = "<group>"; };
+		65CF01621F229C34002259F2 /* zooom3Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = zooom3Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		65CF01661F229C34002259F2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		AA0001021A229C34002259F2 /* EMRMoveResizeTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EMRMoveResizeTest.m; sourceTree = "<group>"; };
-		AA0001041A229C34002259F2 /* EMRAppDelegateTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EMRAppDelegateTest.m; sourceTree = "<group>"; };
 		6E238EE0184504BC00E47948 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
-		6ED47B61183BF3E800859244 /* Zooom3.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Zooom3.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		6ED47B61183BF3E800859244 /* Zooom3.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Zooom3.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6ED47B64183BF3E800859244 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		6ED47B67183BF3E800859244 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		6ED47B68183BF3E800859244 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
@@ -57,16 +56,18 @@
 		6ED47B77183BF3E800859244 /* EMRAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EMRAppDelegate.m; sourceTree = "<group>"; };
 		6ED47B7C183BF3E800859244 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		6ED47B83183BF3E800859244 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
+		AA0001021A229C34002259F2 /* EMRMoveResizeTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EMRMoveResizeTest.m; sourceTree = "<group>"; };
+		AA0001041A229C34002259F2 /* EMRAppDelegateTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EMRAppDelegateTest.m; sourceTree = "<group>"; };
 		B02F125CE1BC18D269C53372 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		CC000002A0000002000000A2 /* EMRPopoverViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EMRPopoverViewController.h; sourceTree = "<group>"; };
+		CC000003A0000003000000A3 /* EMRPopoverViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EMRPopoverViewController.m; sourceTree = "<group>"; };
+		CC000006A0000006000000A6 /* EMRPopoverViewControllerTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EMRPopoverViewControllerTest.m; sourceTree = "<group>"; };
 		F907A0E10208B2B4C63E46E3 /* LICENSE.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
 		F907A3568D9301F4E6A9736F /* contributing.md */ = {isa = PBXFileReference; lastKnownFileType = file.md; path = contributing.md; sourceTree = "<group>"; };
 		F907A4D20267246716869421 /* readme.md */ = {isa = PBXFileReference; lastKnownFileType = file.md; path = readme.md; sourceTree = "<group>"; };
 		F907AB0E17E61960C00A089F /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = file.gitignore; path = .gitignore; sourceTree = "<group>"; };
 		F907ACD4ED7B8961880D12BD /* EMRMoveResize.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EMRMoveResize.h; sourceTree = "<group>"; };
 		F907AEB04B0AF90540F6EF00 /* EMRMoveResize.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EMRMoveResize.m; sourceTree = "<group>"; };
-		CC000002A0000002000000A2 /* EMRPopoverViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EMRPopoverViewController.h; sourceTree = "<group>"; };
-		CC000003A0000003000000A3 /* EMRPopoverViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EMRPopoverViewController.m; sourceTree = "<group>"; };
-		CC000006A0000006000000A6 /* EMRPopoverViewControllerTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EMRPopoverViewControllerTest.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -92,18 +93,19 @@
 		65CF01631F229C34002259F2 /* zooom3Tests */ = {
 			isa = PBXGroup;
 			children = (
-				65CF01641F229C34002259F2 /* EMRPreferencesTest.m */,
 				AA0001021A229C34002259F2 /* EMRMoveResizeTest.m */,
 				AA0001041A229C34002259F2 /* EMRAppDelegateTest.m */,
 				CC000006A0000006000000A6 /* EMRPopoverViewControllerTest.m */,
 				65CF01661F229C34002259F2 /* Info.plist */,
 			);
-			path = "zooom3Tests";
+			path = zooom3Tests;
 			sourceTree = "<group>";
 		};
 		6ED47B58183BF3E800859244 = {
 			isa = PBXGroup;
 			children = (
+				1322FE5E2F62DAD7003A9CF9 /* PreferencesTests.swift */,
+				1322FE5B2F62DAB1003A9CF9 /* Preferences.swift */,
 				6ED47B6A183BF3E800859244 /* zooom3 */,
 				65CF01631F229C34002259F2 /* zooom3Tests */,
 				6ED47B63183BF3E800859244 /* Frameworks */,
@@ -112,6 +114,8 @@
 				F907A0E10208B2B4C63E46E3 /* LICENSE.txt */,
 				F907A4D20267246716869421 /* readme.md */,
 				F907A3568D9301F4E6A9736F /* contributing.md */,
+				1322FE5D2F62DAC2003A9CF9 /* zooom3-Bridging-Header.h */,
+				1322FE602F62DAD8003A9CF9 /* zooom3Tests-Bridging-Header.h */,
 			);
 			sourceTree = "<group>";
 		};
@@ -155,12 +159,10 @@
 				6ED47B6B183BF3E800859244 /* Supporting Files */,
 				F907ACD4ED7B8961880D12BD /* EMRMoveResize.h */,
 				F907AEB04B0AF90540F6EF00 /* EMRMoveResize.m */,
-				52B5E8F51C513E3D0055C181 /* EMRPreferences.m */,
-				52B5E8F81C513E7A0055C181 /* EMRPreferences.h */,
 				CC000002A0000002000000A2 /* EMRPopoverViewController.h */,
 				CC000003A0000003000000A3 /* EMRPopoverViewController.m */,
 			);
-			path = "zooom3";
+			path = zooom3;
 			sourceTree = "<group>";
 		};
 		6ED47B6B183BF3E800859244 /* Supporting Files */ = {
@@ -190,8 +192,8 @@
 			dependencies = (
 				65CF01681F229C34002259F2 /* PBXTargetDependency */,
 			);
-			name = "zooom3Tests";
-			productName = "zooom3Tests";
+			name = zooom3Tests;
+			productName = zooom3Tests;
 			productReference = 65CF01621F229C34002259F2 /* zooom3Tests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
@@ -207,8 +209,8 @@
 			);
 			dependencies = (
 			);
-			name = "zooom3";
-			productName = "zooom3";
+			name = zooom3;
+			productName = zooom3;
 			productReference = 6ED47B61183BF3E800859244 /* Zooom3.app */;
 			productType = "com.apple.product-type.application";
 		};
@@ -224,8 +226,12 @@
 				TargetAttributes = {
 					65CF01611F229C34002259F2 = {
 						CreatedOnToolsVersion = 8.3.3;
+						LastSwiftMigration = 2630;
 						ProvisioningStyle = Automatic;
 						TestTargetID = 6ED47B60183BF3E800859244;
+					};
+					6ED47B60183BF3E800859244 = {
+						LastSwiftMigration = 2630;
 					};
 				};
 			};
@@ -276,9 +282,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				65CF01651F229C34002259F2 /* EMRPreferencesTest.m in Sources */,
 				AA0001011A229C34002259F2 /* EMRMoveResizeTest.m in Sources */,
 				AA0001031A229C34002259F2 /* EMRAppDelegateTest.m in Sources */,
+				1322FE5F2F62DAD7003A9CF9 /* PreferencesTests.swift in Sources */,
 				CC000005A0000005000000A5 /* EMRPopoverViewControllerTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -288,7 +294,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6ED47B71183BF3E800859244 /* main.m in Sources */,
-				52B5E8F61C513E3D0055C181 /* EMRPreferences.m in Sources */,
+				1322FE5C2F62DAB1003A9CF9 /* Preferences.swift in Sources */,
 				6ED47B78183BF3E800859244 /* EMRAppDelegate.m in Sources */,
 				F907A25928093AED2C89550E /* EMRMoveResize.m in Sources */,
 				CC000001A0000001000000A1 /* EMRPopoverViewController.m in Sources */,
@@ -337,12 +343,16 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				INFOPLIST_FILE = "zooom3Tests/Info.plist";
+				HEADER_SEARCH_PATHS = "$(OBJROOT)/zooom3.build/$(CONFIGURATION)/zooom3.build/DerivedSources";
+				INFOPLIST_FILE = zooom3Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.supagroova.zooom3-tests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "zooom3Tests-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Zooom3.app/Contents/MacOS/Zooom3";
 			};
 			name = Debug;
@@ -359,12 +369,15 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				INFOPLIST_FILE = "zooom3Tests/Info.plist";
+				HEADER_SEARCH_PATHS = "$(OBJROOT)/zooom3.build/$(CONFIGURATION)/zooom3.build/DerivedSources";
+				INFOPLIST_FILE = zooom3Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.supagroova.zooom3-tests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "zooom3Tests-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Zooom3.app/Contents/MacOS/Zooom3";
 			};
 			name = Release;
@@ -412,7 +425,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 			};
@@ -455,7 +468,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -464,14 +477,19 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "zooom3/zooom3-Prefix.pch";
 				INFOPLIST_FILE = "zooom3/zooom3-Info.plist";
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.supagroova.zooom3";
-				PRODUCT_NAME = "Zooom3";
+				PRODUCT_BUNDLE_IDENTIFIER = com.supagroova.zooom3;
+				PRODUCT_NAME = Zooom3;
 				SDKROOT = macosx;
+				DEFINES_MODULE = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "zooom3-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -480,14 +498,18 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "zooom3/zooom3-Prefix.pch";
 				INFOPLIST_FILE = "zooom3/zooom3-Info.plist";
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.supagroova.zooom3";
-				PRODUCT_NAME = "Zooom3";
+				PRODUCT_BUNDLE_IDENTIFIER = com.supagroova.zooom3;
+				PRODUCT_NAME = Zooom3;
 				SDKROOT = macosx;
+				DEFINES_MODULE = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "zooom3-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

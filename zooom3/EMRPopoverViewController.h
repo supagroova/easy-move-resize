@@ -1,10 +1,10 @@
 #import <Cocoa/Cocoa.h>
 
-@class EMRPreferences;
+@class Preferences;
 
 @interface EMRPopoverViewController : NSViewController
 
-- (instancetype)initWithPreferences:(EMRPreferences *)preferences;
+- (instancetype)initWithPreferences:(Preferences *)preferences;
 
 // Refresh all controls from current preference values
 - (void)syncControlStatesFromPreferences;

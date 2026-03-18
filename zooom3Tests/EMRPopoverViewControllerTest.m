@@ -1,6 +1,6 @@
 #import <XCTest/XCTest.h>
-#import "EMRPreferences.h"
 #import "EMRPopoverViewController.h"
+#import "Zooom3-Swift.h"
 
 @interface EMRPopoverViewControllerTest : XCTestCase
 
@@ -9,7 +9,7 @@
 @implementation EMRPopoverViewControllerTest {
     NSString *testDefaultsName;
     NSUserDefaults *testDefaults;
-    EMRPreferences *preferences;
+    Preferences *preferences;
     EMRPopoverViewController *viewController;
 }
 
@@ -18,7 +18,7 @@
     NSString *uuid = [[NSUUID UUID] UUIDString];
     testDefaultsName = [@"com.supagroova.zooom3.test.popover." stringByAppendingString:uuid];
     testDefaults = [[NSUserDefaults alloc] initWithSuiteName:testDefaultsName];
-    preferences = [[EMRPreferences alloc] initWithUserDefaults:testDefaults];
+    preferences = [[Preferences alloc] initWithUserDefaults:testDefaults];
     viewController = [[EMRPopoverViewController alloc] initWithPreferences:preferences];
 }
 
@@ -237,9 +237,9 @@
 
 - (void)testSyncSetsCustomMoveModifiers {
     [preferences setToDefaults];
-    [preferences setModifierKey:CMD_KEY enabled:NO];
-    [preferences setModifierKey:ALT_KEY enabled:YES];
-    [preferences setModifierKey:SHIFT_KEY enabled:YES];
+    [preferences setModifierKey:@"CMD" enabled:NO];
+    [preferences setModifierKey:@"ALT" enabled:YES];
+    [preferences setModifierKey:@"SHIFT" enabled:YES];
 
     [viewController syncControlStatesFromPreferences];
 
@@ -273,8 +273,8 @@
 
 - (void)testSyncSetsCustomResizeModifiers {
     [preferences setToDefaults];
-    [preferences setResizeModifierKey:CMD_KEY enabled:NO];
-    [preferences setResizeModifierKey:FN_KEY enabled:YES];
+    [preferences setResizeModifierKey:@"CMD" enabled:NO];
+    [preferences setResizeModifierKey:@"FN" enabled:YES];
 
     [viewController syncControlStatesFromPreferences];
 
@@ -296,21 +296,21 @@
     NSPopUpButton *movePopup = [self findPopUpButtonWithIdentifier:@"moveMouseButton" inView:view];
     NSPopUpButton *resizePopup = [self findPopUpButtonWithIdentifier:@"resizeMouseButton" inView:view];
 
-    XCTAssertEqual([[movePopup selectedItem] tag], EMRMouseButtonLeft, @"Move default is Left");
-    XCTAssertEqual([[resizePopup selectedItem] tag], EMRMouseButtonRight, @"Resize default is Right");
+    XCTAssertEqual([[movePopup selectedItem] tag], 0 /* MouseButton.left */, @"Move default is Left");
+    XCTAssertEqual([[resizePopup selectedItem] tag], 1 /* MouseButton.right */, @"Resize default is Right");
 }
 
 - (void)testSyncSetsCustomMouseButtons {
-    [preferences setMoveMouseButton:EMRMouseButtonMiddle];
-    [preferences setResizeMouseButton:EMRMouseButtonLeft];
+    [preferences setMoveMouseButton:2 /* MouseButton.middle */];
+    [preferences setResizeMouseButton:0 /* MouseButton.left */];
     [viewController syncControlStatesFromPreferences];
 
     NSView *view = viewController.view;
     NSPopUpButton *movePopup = [self findPopUpButtonWithIdentifier:@"moveMouseButton" inView:view];
     NSPopUpButton *resizePopup = [self findPopUpButtonWithIdentifier:@"resizeMouseButton" inView:view];
 
-    XCTAssertEqual([[movePopup selectedItem] tag], EMRMouseButtonMiddle, @"Move should be Middle");
-    XCTAssertEqual([[resizePopup selectedItem] tag], EMRMouseButtonLeft, @"Resize should be Left");
+    XCTAssertEqual([[movePopup selectedItem] tag], 2 /* MouseButton.middle */, @"Move should be Middle");
+    XCTAssertEqual([[resizePopup selectedItem] tag], 0 /* MouseButton.left */, @"Resize should be Left");
 }
 
 #pragma mark - syncControlStatesFromPreferences: boolean toggles
@@ -365,8 +365,8 @@
 - (void)testConflictWarningVisibleWhenConflict {
     [preferences setToDefaults];
     // Make move and resize have identical config: same button + same modifiers
-    [preferences setMoveMouseButton:EMRMouseButtonLeft];
-    [preferences setResizeMouseButton:EMRMouseButtonLeft];
+    [preferences setMoveMouseButton:0 /* MouseButton.left */];
+    [preferences setResizeMouseButton:0 /* MouseButton.left */];
     XCTAssertTrue([preferences hasConflictingConfig], @"Should have conflict");
 
     [viewController syncControlStatesFromPreferences];
@@ -407,8 +407,8 @@
 
 - (void)testConflictSeparatorVisibleWhenWarningVisible {
     [preferences setToDefaults];
-    [preferences setMoveMouseButton:EMRMouseButtonLeft];
-    [preferences setResizeMouseButton:EMRMouseButtonLeft];
+    [preferences setMoveMouseButton:0 /* MouseButton.left */];
+    [preferences setResizeMouseButton:0 /* MouseButton.left */];
     [viewController syncControlStatesFromPreferences];
 
     NSView *view = viewController.view;

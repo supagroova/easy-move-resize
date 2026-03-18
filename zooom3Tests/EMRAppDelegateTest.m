@@ -1,7 +1,7 @@
 #import <XCTest/XCTest.h>
 #import "EMRAppDelegate.h"
-#import "EMRPreferences.h"
 #import "EMRMoveResize.h"
+#import "Zooom3-Swift.h"
 
 // The callback is a C function with external linkage in EMRAppDelegate.m
 extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void *refcon);
@@ -103,32 +103,32 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     NSUserDefaults *prefs = [[NSUserDefaults alloc] initWithSuiteName:@"userPrefs"];
     [prefs setObject:@"CTRL,CMD" forKey:@"ModifierFlags"];
     [prefs setObject:@"CTRL,CMD" forKey:@"ResizeModifierFlags"];
-    [prefs setInteger:EMRMouseButtonLeft forKey:@"MoveMouseButton"];
-    [prefs setInteger:EMRMouseButtonRight forKey:@"ResizeMouseButton"];
+    [prefs setInteger:0 /* MouseButton.left */ forKey:@"MoveMouseButton"];
+    [prefs setInteger:1 /* MouseButton.right */ forKey:@"ResizeMouseButton"];
 
     [delegate refreshCachedPreferences];
 
     int expectedFlags = kCGEventFlagMaskCommand | kCGEventFlagMaskControl;
     XCTAssertEqual([delegate modifierFlags], expectedFlags, "Cached move modifiers should match preferences");
     XCTAssertEqual([delegate resizeModifierFlags], expectedFlags, "Cached resize modifiers should match preferences");
-    XCTAssertEqual([delegate moveMouseButton], EMRMouseButtonLeft, "Cached move button should match preferences");
-    XCTAssertEqual([delegate resizeMouseButton], EMRMouseButtonRight, "Cached resize button should match preferences");
+    XCTAssertEqual([delegate moveMouseButton], 0 /* MouseButton.left */, "Cached move button should match preferences");
+    XCTAssertEqual([delegate resizeMouseButton], 1 /* MouseButton.right */, "Cached resize button should match preferences");
 
     // Now change preferences and refresh — verify update
     [prefs setObject:@"CMD,ALT" forKey:@"ResizeModifierFlags"];
-    [prefs setInteger:EMRMouseButtonMiddle forKey:@"ResizeMouseButton"];
+    [prefs setInteger:2 /* MouseButton.middle */ forKey:@"ResizeMouseButton"];
 
     [delegate refreshCachedPreferences];
 
     int expectedResizeFlags = kCGEventFlagMaskCommand | kCGEventFlagMaskAlternate;
     XCTAssertEqual([delegate resizeModifierFlags], expectedResizeFlags, "Cached resize modifiers should update after preference change");
-    XCTAssertEqual([delegate resizeMouseButton], EMRMouseButtonMiddle, "Cached resize button should update after preference change");
+    XCTAssertEqual([delegate resizeMouseButton], 2 /* MouseButton.middle */, "Cached resize button should update after preference change");
 
     // Restore defaults to not pollute other tests
     [prefs setObject:@"CTRL,CMD" forKey:@"ModifierFlags"];
     [prefs setObject:@"CTRL,CMD" forKey:@"ResizeModifierFlags"];
-    [prefs setInteger:EMRMouseButtonLeft forKey:@"MoveMouseButton"];
-    [prefs setInteger:EMRMouseButtonRight forKey:@"ResizeMouseButton"];
+    [prefs setInteger:0 /* MouseButton.left */ forKey:@"MoveMouseButton"];
+    [prefs setInteger:1 /* MouseButton.right */ forKey:@"ResizeMouseButton"];
 }
 
 #pragma mark - Accessor methods return cached ivars
@@ -144,13 +144,13 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
 }
 
 - (void)testMoveMouseButtonReturnsCachedValue {
-    [self setCachedMoveButton:EMRMouseButtonMiddle];
-    XCTAssertEqual([delegate moveMouseButton], EMRMouseButtonMiddle);
+    [self setCachedMoveButton:2 /* MouseButton.middle */];
+    XCTAssertEqual([delegate moveMouseButton], 2 /* MouseButton.middle */);
 }
 
 - (void)testResizeMouseButtonReturnsCachedValue {
-    [self setCachedResizeButton:EMRMouseButtonLeft];
-    XCTAssertEqual([delegate resizeMouseButton], EMRMouseButtonLeft);
+    [self setCachedResizeButton:0 /* MouseButton.left */];
+    XCTAssertEqual([delegate resizeMouseButton], 0 /* MouseButton.left */);
 }
 
 #pragma mark - Callback: session inactive passes through
@@ -158,7 +158,7 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
 - (void)testCallbackPassesThroughWhenSessionInactive {
     [delegate setSessionActive:NO];
     [self setCachedMoveModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
-    [self setCachedMoveButton:EMRMouseButtonLeft];
+    [self setCachedMoveButton:0 /* MouseButton.left */];
 
     CGEventRef event = [self createMouseEvent:kCGEventLeftMouseDown
                                         flags:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
@@ -173,8 +173,8 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     [delegate setSessionActive:YES];
     [self setCachedMoveModifiers:0];
     [self setCachedResizeModifiers:0];
-    [self setCachedMoveButton:EMRMouseButtonLeft];
-    [self setCachedResizeButton:EMRMouseButtonRight];
+    [self setCachedMoveButton:0 /* MouseButton.left */];
+    [self setCachedResizeButton:1 /* MouseButton.right */];
 
     CGEventRef event = [self createMouseEvent:kCGEventLeftMouseDown flags:0];
     CGEventRef result = myCGEventCallback(NULL, kCGEventLeftMouseDown, event, (__bridge void *)delegate);
@@ -188,8 +188,8 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     [delegate setSessionActive:YES];
     [self setCachedMoveModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
     [self setCachedResizeModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskAlternate];
-    [self setCachedMoveButton:EMRMouseButtonLeft];
-    [self setCachedResizeButton:EMRMouseButtonRight];
+    [self setCachedMoveButton:0 /* MouseButton.left */];
+    [self setCachedResizeButton:1 /* MouseButton.right */];
 
     // Send left-click with only Shift — matches neither move nor resize
     CGEventRef event = [self createMouseEvent:kCGEventLeftMouseDown flags:kCGEventFlagMaskShift];
@@ -204,8 +204,8 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     [delegate setSessionActive:YES];
     [self setCachedMoveModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
     [self setCachedResizeModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
-    [self setCachedMoveButton:EMRMouseButtonLeft];
-    [self setCachedResizeButton:EMRMouseButtonRight];
+    [self setCachedMoveButton:0 /* MouseButton.left */];
+    [self setCachedResizeButton:1 /* MouseButton.right */];
 
     // Send middle-click with correct modifiers — neither move (Left) nor resize (Right)
     CGEventFlags flags = kCGEventFlagMaskCommand | kCGEventFlagMaskControl;
@@ -221,8 +221,8 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     [delegate setSessionActive:YES];
     [self setCachedMoveModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
     [self setCachedResizeModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskAlternate];
-    [self setCachedMoveButton:EMRMouseButtonLeft];
-    [self setCachedResizeButton:EMRMouseButtonLeft];
+    [self setCachedMoveButton:0 /* MouseButton.left */];
+    [self setCachedResizeButton:0 /* MouseButton.left */];
 
     // Send left-click with Cmd+Ctrl+Alt — has extras for both sets
     CGEventFlags flags = kCGEventFlagMaskCommand | kCGEventFlagMaskControl | kCGEventFlagMaskAlternate;
@@ -238,8 +238,8 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     [delegate setSessionActive:YES];
     [self setCachedMoveModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
     [self setCachedResizeModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskAlternate];
-    [self setCachedMoveButton:EMRMouseButtonLeft];
-    [self setCachedResizeButton:EMRMouseButtonRight];
+    [self setCachedMoveButton:0 /* MouseButton.left */];
+    [self setCachedResizeButton:1 /* MouseButton.right */];
 
     // Set resizeOnly via preferences (the callback reads it via [ourDelegate resizeOnly])
     // The delegate's init creates its own preferences, so we need to use KVC or the accessor
@@ -267,8 +267,8 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     [delegate setSessionActive:YES];
     [self setCachedMoveModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
     [self setCachedResizeModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
-    [self setCachedMoveButton:EMRMouseButtonLeft];
-    [self setCachedResizeButton:EMRMouseButtonRight];
+    [self setCachedMoveButton:0 /* MouseButton.left */];
+    [self setCachedResizeButton:1 /* MouseButton.right */];
 
     // Simulate an active tracking session (as if mouse-down already happened)
     EMRMoveResize *mr = [EMRMoveResize instance];
@@ -293,8 +293,8 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     [delegate setSessionActive:YES];
     [self setCachedMoveModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
     [self setCachedResizeModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
-    [self setCachedMoveButton:EMRMouseButtonLeft];
-    [self setCachedResizeButton:EMRMouseButtonRight];
+    [self setCachedMoveButton:0 /* MouseButton.left */];
+    [self setCachedResizeButton:1 /* MouseButton.right */];
 
     EMRMoveResize *mr = [EMRMoveResize instance];
     [mr setTracking:CACurrentMediaTime()];
@@ -315,8 +315,8 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     [delegate setSessionActive:YES];
     [self setCachedMoveModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
     [self setCachedResizeModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
-    [self setCachedMoveButton:EMRMouseButtonLeft];
-    [self setCachedResizeButton:EMRMouseButtonRight];
+    [self setCachedMoveButton:0 /* MouseButton.left */];
+    [self setCachedResizeButton:1 /* MouseButton.right */];
 
     EMRMoveResize *mr = [EMRMoveResize instance];
     [mr setTracking:0]; // No active tracking
@@ -333,8 +333,8 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     [delegate setSessionActive:YES];
     [self setCachedMoveModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
     [self setCachedResizeModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
-    [self setCachedMoveButton:EMRMouseButtonLeft];
-    [self setCachedResizeButton:EMRMouseButtonRight];
+    [self setCachedMoveButton:0 /* MouseButton.left */];
+    [self setCachedResizeButton:1 /* MouseButton.right */];
 
     // Create a scroll wheel event (not handled by the callback)
     CGEventRef event = CGEventCreateScrollWheelEvent(NULL, kCGScrollEventUnitLine, 1, 1);
@@ -355,8 +355,8 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     int flags = kCGEventFlagMaskCommand | kCGEventFlagMaskControl;
     [self setCachedMoveModifiers:flags];
     [self setCachedResizeModifiers:flags];
-    [self setCachedMoveButton:EMRMouseButtonLeft];
-    [self setCachedResizeButton:EMRMouseButtonLeft];
+    [self setCachedMoveButton:0 /* MouseButton.left */];
+    [self setCachedResizeButton:0 /* MouseButton.left */];
     [self setCachedHasConflict:YES];
 
     // Send mouse-down with matching modifiers.
@@ -389,8 +389,8 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     // Move: Cmd+Ctrl on Left, Resize: Cmd+Alt on Left
     [self setCachedMoveModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
     [self setCachedResizeModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskAlternate];
-    [self setCachedMoveButton:EMRMouseButtonLeft];
-    [self setCachedResizeButton:EMRMouseButtonLeft];
+    [self setCachedMoveButton:0 /* MouseButton.left */];
+    [self setCachedResizeButton:0 /* MouseButton.left */];
 
     // Send left-click with Cmd+Ctrl — should match move only
     CGEventFlags moveFlags = kCGEventFlagMaskCommand | kCGEventFlagMaskControl;
@@ -411,8 +411,8 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     // Move: Cmd+Ctrl on Left, Resize: Cmd+Alt on Left
     [self setCachedMoveModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
     [self setCachedResizeModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskAlternate];
-    [self setCachedMoveButton:EMRMouseButtonLeft];
-    [self setCachedResizeButton:EMRMouseButtonLeft];
+    [self setCachedMoveButton:0 /* MouseButton.left */];
+    [self setCachedResizeButton:0 /* MouseButton.left */];
 
     // Send left-click with Cmd+Alt — should match resize only.
     // In test env: resize path enters AX size query which fails on NULL window,
@@ -436,8 +436,8 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     [delegate setSessionActive:YES];
     [self setCachedMoveModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
     [self setCachedResizeModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskAlternate];
-    [self setCachedMoveButton:EMRMouseButtonLeft];
-    [self setCachedResizeButton:EMRMouseButtonRight];
+    [self setCachedMoveButton:0 /* MouseButton.left */];
+    [self setCachedResizeButton:1 /* MouseButton.right */];
 
     // Simulate active move tracking
     EMRMoveResize *mr = [EMRMoveResize instance];
@@ -464,8 +464,8 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     [delegate setSessionActive:YES];
     [self setCachedMoveModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
     [self setCachedResizeModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskAlternate];
-    [self setCachedMoveButton:EMRMouseButtonLeft];
-    [self setCachedResizeButton:EMRMouseButtonRight];
+    [self setCachedMoveButton:0 /* MouseButton.left */];
+    [self setCachedResizeButton:1 /* MouseButton.right */];
 
     // Simulate active resize tracking
     EMRMoveResize *mr = [EMRMoveResize instance];
@@ -495,8 +495,8 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     int flags = kCGEventFlagMaskCommand | kCGEventFlagMaskControl;
     [self setCachedMoveModifiers:flags];
     [self setCachedResizeModifiers:flags];
-    [self setCachedMoveButton:EMRMouseButtonLeft];
-    [self setCachedResizeButton:EMRMouseButtonMiddle]; // Middle-click resize
+    [self setCachedMoveButton:0 /* MouseButton.left */];
+    [self setCachedResizeButton:2 /* MouseButton.middle */]; // Middle-click resize
 
     // Left-click should match move, not resize
     CGEventRef leftEvent = [self createMouseEvent:kCGEventLeftMouseDown flags:flags];
@@ -545,8 +545,8 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     [self setCachedHoverModeEnabled:YES];
     [self setCachedMoveModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
     [self setCachedResizeModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
-    [self setCachedMoveButton:EMRMouseButtonLeft];
-    [self setCachedResizeButton:EMRMouseButtonRight];
+    [self setCachedMoveButton:0 /* MouseButton.left */];
+    [self setCachedResizeButton:1 /* MouseButton.right */];
 
     CGEventRef event = [self createFlagsChangedEvent:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
     CGEventRef result = myCGEventCallback(NULL, kCGEventFlagsChanged, event, (__bridge void *)delegate);
@@ -564,8 +564,8 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     [self setCachedHoverModeEnabled:YES];
     [self setCachedMoveModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
     [self setCachedResizeModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskAlternate];
-    [self setCachedMoveButton:EMRMouseButtonLeft];
-    [self setCachedResizeButton:EMRMouseButtonRight];
+    [self setCachedMoveButton:0 /* MouseButton.left */];
+    [self setCachedResizeButton:1 /* MouseButton.right */];
 
     // Simulate active hover
     EMRMoveResize *mr = [EMRMoveResize instance];
@@ -589,8 +589,8 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     [self setCachedHoverModeEnabled:YES];
     [self setCachedMoveModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
     [self setCachedResizeModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskAlternate];
-    [self setCachedMoveButton:EMRMouseButtonLeft];
-    [self setCachedResizeButton:EMRMouseButtonRight];
+    [self setCachedMoveButton:0 /* MouseButton.left */];
+    [self setCachedResizeButton:1 /* MouseButton.right */];
 
     NSUserDefaults *prefs = [[NSUserDefaults alloc] initWithSuiteName:@"userPrefs"];
     [prefs setBool:YES forKey:@"ResizeOnly"];
@@ -683,8 +683,8 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     [delegate setSessionActive:YES];
     [self setCachedMoveModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
     [self setCachedResizeModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
-    [self setCachedMoveButton:EMRMouseButtonLeft];
-    [self setCachedResizeButton:EMRMouseButtonRight];
+    [self setCachedMoveButton:0 /* MouseButton.left */];
+    [self setCachedResizeButton:1 /* MouseButton.right */];
 
     EMRMoveResize *mr = [EMRMoveResize instance];
     CFTimeInterval startTime = CACurrentMediaTime();
@@ -737,8 +737,8 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     [delegate setSessionActive:YES];
     [self setCachedMoveModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
     [self setCachedResizeModifiers:kCGEventFlagMaskCommand | kCGEventFlagMaskControl];
-    [self setCachedMoveButton:EMRMouseButtonLeft];
-    [self setCachedResizeButton:EMRMouseButtonRight];
+    [self setCachedMoveButton:0 /* MouseButton.left */];
+    [self setCachedResizeButton:1 /* MouseButton.right */];
 
     EMRMoveResize *mr = [EMRMoveResize instance];
     [mr setTracking:CACurrentMediaTime()];

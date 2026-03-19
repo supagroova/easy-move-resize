@@ -59,7 +59,7 @@ struct AccessibilityOnboardingView: View {
 @available(macOS 13.0, *)
 @objc class AccessibilityOnboardingBridge: NSObject, NSWindowDelegate {
 
-    @objc static let settingsURL: URL? = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")
+    @objc static let settingsURL: URL? = URL(string: "x-apple.systempreferences:com.apple.Settings.PrivacySecurity.extension?Privacy_Accessibility")
 
     @objc let window: NSWindow
     @objc var onPermissionGranted: (() -> Void)?
@@ -70,8 +70,7 @@ struct AccessibilityOnboardingView: View {
     }
 
     @objc override init() {
-        let view = AccessibilityOnboardingView()
-        let hosting = NSHostingController(rootView: view)
+        let hosting = NSHostingController(rootView: AccessibilityOnboardingView())
         hosting.sizingOptions = .preferredContentSize
 
         let window = NSWindow(contentViewController: hosting)
@@ -86,17 +85,18 @@ struct AccessibilityOnboardingView: View {
 
         window.delegate = self
 
-        // Wire the Open Settings button
-        var updatedView = view
-        updatedView.onOpenSettings = { [weak self] in
+        hosting.rootView = AccessibilityOnboardingView(onOpenSettings: { [weak self] in
             self?.openSettings()
-        }
-        hosting.rootView = updatedView
+        })
     }
 
     @objc func showWindow() {
         window.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
+        if #available(macOS 14.0, *) {
+            NSApp.activate()
+        } else {
+            NSApp.activate(ignoringOtherApps: true)
+        }
     }
 
     @objc func closeWindow() {

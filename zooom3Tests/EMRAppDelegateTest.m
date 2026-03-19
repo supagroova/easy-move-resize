@@ -837,6 +837,36 @@ extern CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGE
     [delegate setValue:nil forKey:@"onboardingBridge"];
 }
 
+- (void)testHandlePermissionRevokedRemovesWorkspaceObservers {
+    // Manually register workspace observers (simulating setupEventTapAndObservers)
+    NSNotificationCenter *wsnc = [[NSWorkspace sharedWorkspace] notificationCenter];
+    [wsnc addObserver:delegate
+             selector:@selector(becameActive:)
+                 name:NSWorkspaceSessionDidBecomeActiveNotification
+               object:nil];
+    [wsnc addObserver:delegate
+             selector:@selector(becameInactive:)
+                 name:NSWorkspaceSessionDidResignActiveNotification
+               object:nil];
+
+    // handlePermissionRevoked should remove those observers
+    [delegate handlePermissionRevoked];
+
+    // Reset sessionActive so we can detect whether becameInactive: fires
+    [delegate setSessionActive:YES];
+
+    // Post a resign notification — if observers were removed, sessionActive stays YES
+    [wsnc postNotificationName:NSWorkspaceSessionDidResignActiveNotification object:nil];
+    XCTAssertTrue([delegate sessionActive],
+                  "becameInactive: should NOT fire after handlePermissionRevoked removes observers");
+
+    if (@available(macOS 13.0, *)) {
+        AccessibilityOnboardingBridge *bridge = [delegate valueForKey:@"onboardingBridge"];
+        [bridge stopPolling];
+    }
+    [delegate setValue:nil forKey:@"onboardingBridge"];
+}
+
 - (void)testHandlePermissionRevokedTwiceDoesNotCrash {
     // Calling handlePermissionRevoked multiple times should be safe
     // (e.g. if multiple kCGEventTapDisabledByTimeout events fire before main queue processes)

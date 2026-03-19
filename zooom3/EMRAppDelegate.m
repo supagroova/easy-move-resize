@@ -574,6 +574,11 @@ CGEventRef myCGEventCallback(CGEventTapProxy __unused proxy, CGEventType type, C
 }
 
 - (void)handlePermissionRevoked {
+    // Remove workspace observers so setupEventTapAndObservers can re-add them cleanly
+    NSNotificationCenter *wsnc = [[NSWorkspace sharedWorkspace] notificationCenter];
+    [wsnc removeObserver:self name:NSWorkspaceSessionDidBecomeActiveNotification object:nil];
+    [wsnc removeObserver:self name:NSWorkspaceSessionDidResignActiveNotification object:nil];
+
     MoveResize *moveResize = [MoveResize instance];
 
     // Cancel any active move/resize operation

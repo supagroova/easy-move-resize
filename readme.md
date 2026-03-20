@@ -18,12 +18,33 @@ Zooom3 is a fork of [Easy Move+Resize](https://github.com/dmarcotte/easy-move-re
 
 ## Installation
 
-Download the latest release from the [Releases page](https://github.com/supagroova/Zooom3/releases), unzip, and run.
+Download the latest release from the [Releases page](https://github.com/supagroova/Zooom3/releases), unzip, and drag Zooom3 to your Applications folder.
 
-### Troubleshooting
+### macOS Security
 
-- If macOS refuses to launch Zooom3 because it "cannot check it for malicious software": Right-click the app and select "Open", then click "Open" in the dialog.
-- If Accessibility permission is not working: Remove Zooom3 from System Preferences > Privacy & Security > Accessibility, then re-add it.
+Zooom3 is not signed with an Apple Developer certificate, so macOS will block it the first time you open it. This is normal and expected for open-source utilities distributed outside the App Store.
+
+**macOS Sequoia (15) and later:**
+
+1. Double-click Zooom3 — macOS will show a warning and refuse to open it
+2. Open **System Settings > Privacy & Security**
+3. Scroll down — you'll see a message about Zooom3 being blocked
+4. Click **Open Anyway** and confirm with your password
+
+**macOS Sonoma (14) and earlier:**
+
+1. Right-click (or Control-click) Zooom3 and select **Open**
+2. Click **Open** in the confirmation dialog
+
+You only need to do this once. After that, Zooom3 will open normally.
+
+### Accessibility Permission
+
+Zooom3 needs Accessibility access to move and resize windows. On first launch, it will guide you through granting this permission. If you ever need to reset it:
+
+1. Open **System Settings > Privacy & Security > Accessibility**
+2. Remove Zooom3 from the list
+3. Re-launch Zooom3 and follow the onboarding prompt to re-add it
 
 ## Usage
 

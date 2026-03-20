@@ -1,128 +1,372 @@
 <!DOCTYPE html>
-<html lang="en">
+
+<html class="light" lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zooom3 — Window Move & Resize for macOS</title>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0084FF",
+                        "on-primary": "#ffffff",
+                        "surface": "#f7f9ff",
+                        "on-surface": "#181c20",
+                        "surface-variant": "#e0e2e8",
+                        "on-surface-variant": "#414754",
+                        "outline": "#717786",
+                        "outline-variant": "#c0c6d6",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-low": "#f1f4f9",
+                        "surface-container": "#eceef3",
+                        "surface-container-high": "#e6e8ee",
+                        "surface-container-highest": "#e0e2e8",
+                        "inverse-surface": "#2d3135",
+                        "inverse-on-surface": "#eef1f6",
+                    },
+                    fontFamily: {
+                        "sans": ["Inter", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "headline": ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.75rem",
+                        "xl": "1rem",
+                        "2xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-            color: #1d1d1f;
-            background: #fbfbfd;
-            -webkit-font-smoothing: antialiased;
+        .glass-panel {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
         }
 
-        .hero {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 80vh;
-            padding: 4rem 2rem;
-            text-align: center;
+        .glossy-button {
+            background: linear-gradient(180deg, #0084FF 0%, #0076E5 100%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 4px 12px rgba(0, 132, 255, 0.3);
         }
 
-        .hero img {
-            width: 128px;
-            height: 128px;
-            margin-bottom: 2rem;
-            border-radius: 24px;
+        .glossy-button:hover {
+            background: linear-gradient(180deg, #1A90FF 0%, #0084FF 100%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 6px 16px rgba(0, 132, 255, 0.4);
         }
 
-        .hero h1 {
-            font-size: 3rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            margin-bottom: 1rem;
+        .mac-shadow {
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
         }
 
-        .hero .tagline {
-            font-size: 1.25rem;
-            color: #6e6e73;
-            max-width: 520px;
-            line-height: 1.5;
-            margin-bottom: 2.5rem;
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
-
-        .cta {
-            display: inline-block;
-            padding: 0.85rem 2rem;
-            background: #0071e3;
-            color: #fff;
-            font-size: 1rem;
-            font-weight: 500;
-            border-radius: 980px;
-            text-decoration: none;
-            transition: background 0.2s;
-        }
-
-        .cta:hover { background: #0077ed; }
-
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 2rem;
-            max-width: 860px;
-            margin: 0 auto 6rem;
-            padding: 0 2rem;
-        }
-
-        .feature {
-            text-align: center;
-            padding: 1.5rem;
-        }
-
-        .feature h3 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .feature p {
-            font-size: 0.95rem;
-            color: #6e6e73;
-            line-height: 1.5;
-        }
-
-        footer {
-            text-align: center;
-            padding: 2rem;
-            font-size: 0.85rem;
-            color: #86868b;
-            border-top: 1px solid #e8e8ed;
-        }
-
-        footer a { color: #0071e3; text-decoration: none; }
-        footer a:hover { text-decoration: underline; }
     </style>
 </head>
-<body>
-    <section class="hero">
-        <img src="icon.png" alt="Zooom3 icon">
-        <h1>Zooom3</h1>
-        <p class="tagline">Move and resize any window with modifier keys and your mouse. Like X11 and Zooom2, but for modern macOS.</p>
-        <a href="https://github.com/supagroova/Zooom3/releases" class="cta">Download for macOS</a>
-    </section>
 
-    <section class="features">
-        <div class="feature">
-            <h3>Move & Resize</h3>
-            <p>Hold your modifier keys and drag anywhere in a window to move or resize it. No need to aim for edges or title bars.</p>
+<body class="bg-surface text-on-surface font-body selection:bg-primary/30 selection:text-primary">
+    <nav class="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl shadow-sm">
+        <div class="flex justify-between items-center max-w-7xl mx-auto px-6 h-16">
+            <div class="text-xl font-bold tracking-tighter text-slate-900">Zooom3</div>
+            <div class="hidden md:flex items-center gap-8 font-sans text-sm font-medium tracking-tight">
+                <a class="text-blue-600 font-semibold" href="#features">Features</a>
+                <a class="text-slate-600 hover:text-blue-600 transition-colors duration-200"
+                    href="#installation">Installation</a>
+                <a class="text-slate-600 hover:text-blue-600 transition-colors duration-200" href="#usage">Usage</a>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="https://github.com/supagroova/Zooom3/releases"
+                    class="glossy-button px-5 py-2 text-on-primary rounded-xl text-sm font-semibold scale-95 active:scale-90 transition-transform no-underline">
+                    Download
+                </a>
+            </div>
         </div>
-        <div class="feature">
-            <h3>Hover Mode</h3>
-            <p>Just hold your modifiers and move the mouse — no click needed. Feels like the classic Zooom2 experience.</p>
+    </nav>
+    <main>
+        <!-- Hero Section -->
+        <section class="relative pt-40 pb-24 overflow-hidden">
+            <div
+                class="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-50 via-surface to-surface">
+            </div>
+            <div class="max-w-7xl mx-auto px-6 flex flex-col items-center text-center">
+                <div class="mb-10 relative">
+                    <div class="absolute inset-0 bg-primary/20 blur-3xl rounded-full -z-10 animate-pulse"></div>
+                    <img alt="Zooom3 App Icon"
+                        class="w-32 h-32 md:w-40 md:h-40 drop-shadow-2xl hover:scale-105 transition-transform duration-500 rounded-2xl"
+                        src="https://raw.githubusercontent.com/supagroova/Zooom3/refs/heads/main/zooom3/Images.xcassets/AppIcon.appiconset/icon_256x256%402.png" />
+                </div>
+                <span
+                    class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[0.75rem] font-bold tracking-wide mb-6 border border-primary/20">
+                    <span class="relative flex h-2 w-2">
+                        <span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                    </span>
+                    v3.0.1 - macOS NATIVE
+                </span>
+                <h1 class="text-5xl md:text-7xl font-extrabold leading-[1.05] tracking-tight text-on-surface mb-8">
+                    Zooom3
+                </h1>
+                <p class="text-lg md:text-xl text-on-surface-variant max-w-3xl mb-4 leading-relaxed">
+                    A macOS utility that adds modifier key + mouse window move and resize, inspired by X11/Linux window
+                    managers and the classic Zooom2 app.
+                </p>
+                <p class="text-sm text-on-surface-variant/70 mb-12 max-w-2xl">
+                    Zooom3 is a fork of <a class="text-primary hover:underline" href="#">Easy Move+Resize</a> by Daniel
+                    Marcotte, featuring additional enhancements to perfectly recreate the classic Zooom2 experience.
+                </p>
+                <div class="flex flex-col sm:flex-row items-center gap-6">
+                    <a href="https://github.com/supagroova/Zooom3/releases"
+                        class="glossy-button px-10 py-4 text-on-primary rounded-2xl font-bold text-lg flex items-center gap-3 transition-all hover:scale-[1.02] active:scale-95 no-underline">
+                        Download for macOS
+                        <span class="material-symbols-outlined text-[24px]">download</span>
+                    </a>
+                    <a class="px-10 py-4 bg-surface-container-lowest text-on-surface rounded-2xl font-bold text-lg hover:bg-surface-bright transition-all border border-outline-variant/30 flex items-center gap-2 no-underline"
+                        href="https://github.com/supagroova/Zooom3">
+                        View GitHub
+                    </a>
+                </div>
+            </div>
+        </section>
+        <!-- Features Bento Grid -->
+        <section class="py-32 bg-surface-container-low" id="features">
+            <div class="max-w-7xl mx-auto px-6">
+                <div class="mb-20 text-center">
+                    <h2 class="text-4xl font-bold tracking-tight text-on-surface mb-4">Powerful Features</h2>
+                    <p class="text-on-surface-variant text-lg">Total control over your windows without hunting for
+                        edges.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Move Windows -->
+                    <div
+                        class="bg-surface-container-lowest p-8 rounded-3xl border border-outline-variant/10 shadow-sm hover:shadow-xl transition-all group">
+                        <div
+                            class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-on-primary transition-all">
+                            <span class="material-symbols-outlined text-2xl" data-icon="drag_pan">drag_pan</span>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 text-on-surface">Move Windows</h3>
+                        <p class="text-on-surface-variant text-sm leading-relaxed">
+                            Hold your chosen modifier keys and left-click drag anywhere inside a window to move it
+                            instantly.
+                        </p>
+                    </div>
+                    <!-- Resize Windows -->
+                    <div
+                        class="bg-surface-container-lowest p-8 rounded-3xl border border-outline-variant/10 shadow-sm hover:shadow-xl transition-all group">
+                        <div
+                            class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-on-primary transition-all">
+                            <span class="material-symbols-outlined text-2xl"
+                                data-icon="aspect_ratio">aspect_ratio</span>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 text-on-surface">Resize Windows</h3>
+                        <p class="text-on-surface-variant text-sm leading-relaxed">
+                            Right-click drag with modifiers. Direction is based on the cursor's position in a 3x3 grid
+                            within the window.
+                        </p>
+                    </div>
+                    <!-- Hover Mode -->
+                    <div
+                        class="bg-surface-container-lowest p-8 rounded-3xl border border-outline-variant/10 shadow-sm hover:shadow-xl transition-all group">
+                        <div
+                            class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-on-primary transition-all">
+                            <span class="material-symbols-outlined text-2xl" data-icon="mouse">mouse</span>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 text-on-surface">Hover Mode</h3>
+                        <p class="text-on-surface-variant text-sm leading-relaxed">
+                            No clicks required. Simply hold the modifier keys and windows move or resize as you move the
+                            mouse.
+                        </p>
+                    </div>
+                    <!-- Customizable Modifiers -->
+                    <div
+                        class="bg-surface-container-lowest p-8 rounded-3xl border border-outline-variant/10 shadow-sm hover:shadow-xl transition-all group">
+                        <div
+                            class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-on-primary transition-all">
+                            <span class="material-symbols-outlined text-2xl"
+                                data-icon="settings_input_component">settings_input_component</span>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 text-on-surface">Custom Modifiers</h3>
+                        <p class="text-on-surface-variant text-sm leading-relaxed">
+                            Choose any combination of Cmd, Ctrl, Alt, Shift, or Fn keys to trigger your actions.
+                        </p>
+                    </div>
+                    <!-- Separate Resize Modifiers -->
+                    <div
+                        class="bg-surface-container-lowest p-8 rounded-3xl border border-outline-variant/10 shadow-sm hover:shadow-xl transition-all group">
+                        <div
+                            class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-on-primary transition-all">
+                            <span class="material-symbols-outlined text-2xl" data-icon="tune">tune</span>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 text-on-surface">Separate Resize</h3>
+                        <p class="text-on-surface-variant text-sm leading-relaxed">
+                            Configure entirely different modifier keys specifically for resizing if you prefer a
+                            different feel.
+                        </p>
+                    </div>
+                    <!-- Configurable & App Disable -->
+                    <div
+                        class="bg-surface-container-lowest p-8 rounded-3xl border border-outline-variant/10 shadow-sm hover:shadow-xl transition-all group">
+                        <div
+                            class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-on-primary transition-all">
+                            <span class="material-symbols-outlined text-2xl"
+                                data-icon="app_registration">app_registration</span>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 text-on-surface">Smart Settings</h3>
+                        <p class="text-on-surface-variant text-sm leading-relaxed">
+                            Disable Zooom3 for specific apps and choose which mouse buttons trigger move vs resize.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Installation & Security Section -->
+        <section class="py-32 bg-surface" id="installation">
+            <div class="max-w-7xl mx-auto px-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+                    <div>
+                        <h2 class="text-3xl font-extrabold mb-8">Installation</h2>
+                        <div class="space-y-6">
+                            <div class="flex gap-4">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold flex-shrink-0">
+                                    1</div>
+                                <p class="text-on-surface-variant">Download the latest release from GitHub.</p>
+                            </div>
+                            <div class="flex gap-4">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold flex-shrink-0">
+                                    2</div>
+                                <p class="text-on-surface-variant">Unzip the downloaded archive.</p>
+                            </div>
+                            <div class="flex gap-4">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold flex-shrink-0">
+                                    3</div>
+                                <p class="text-on-surface-variant">Drag the Zooom3 app to your <span
+                                        class="font-semibold">Applications</span> folder.</p>
+                            </div>
+                        </div>
+                        <h2 class="text-3xl font-extrabold mt-16 mb-8">Accessibility Permissions</h2>
+                        <p class="text-on-surface-variant mb-6">Zooom3 requires Accessibility access to interact with
+                            other application windows.</p>
+                        <div class="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/20">
+                            <p class="text-sm text-on-surface-variant leading-relaxed">
+                                Go to <span class="font-semibold text-on-surface">System Settings &gt; Privacy &amp;
+                                    Security &gt; Accessibility</span>. Enable Zooom3. If it's already enabled but not
+                                working, remove it with the minus (-) button and add it back manually.
+                            </p>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-surface-container-lowest p-8 rounded-[2rem] mac-shadow border border-outline-variant/10">
+                        <div class="flex items-center gap-3 mb-6">
+                            <span class="material-symbols-outlined text-amber-500">security</span>
+                            <h2 class="text-2xl font-bold">macOS Security</h2>
+                        </div>
+                        <p class="text-on-surface-variant text-sm mb-8 leading-relaxed">
+                            Zooom3 is currently unsigned. You will see a "Developer cannot be verified" warning when
+                            first opening it.
+                        </p>
+                        <div class="space-y-8">
+                            <div>
+                                <h4 class="font-bold text-sm uppercase tracking-wider text-on-surface/50 mb-4">macOS
+                                    Sequoia (15)+</h4>
+                                <ol class="text-sm text-on-surface-variant list-decimal list-inside space-y-2">
+                                    <li>Attempt to open Zooom3; click "OK" on the warning.</li>
+                                    <li>Open <span class="font-semibold">System Settings &gt; Privacy &amp;
+                                            Security</span>.</li>
+                                    <li>Scroll to the bottom and click <span class="font-semibold">"Open Anyway"</span>.
+                                    </li>
+                                </ol>
+                            </div>
+                            <div class="pt-6 border-t border-outline-variant/10">
+                                <h4 class="font-bold text-sm uppercase tracking-wider text-on-surface/50 mb-4">macOS
+                                    Sonoma (14) &amp; earlier</h4>
+                                <ol class="text-sm text-on-surface-variant list-decimal list-inside space-y-2">
+                                    <li>Right-click (or Control-click) the Zooom3 icon.</li>
+                                    <li>Select <span class="font-semibold">Open</span> from the shortcut menu.</li>
+                                    <li>Click <span class="font-semibold">Open</span> in the dialog that appears.</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Usage Section -->
+        <section class="py-32 bg-surface-container-low" id="usage">
+            <div class="max-w-7xl mx-auto px-6">
+                <div class="mb-16 text-center">
+                    <h2 class="text-4xl font-bold tracking-tight text-on-surface mb-4">How to Use</h2>
+                    <p class="text-on-surface-variant text-lg">Mastering window management in seconds.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                    <div class="text-center">
+                        <div class="text-4xl mb-4">⌨️</div>
+                        <h4 class="font-bold text-xl mb-3">Shortcuts</h4>
+                        <p class="text-sm text-on-surface-variant">Default: <span
+                                class="bg-surface-container px-2 py-1 rounded">Cmd + Ctrl</span>. Click and drag
+                            anywhere on a window to move or resize.</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-4xl mb-4">✨</div>
+                        <h4 class="font-bold text-xl mb-3">Hover Mode</h4>
+                        <p class="text-sm text-on-surface-variant">Enable in settings to move/resize just by holding
+                            modifiers and moving the mouse—no clicking required.</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-4xl mb-4">📍</div>
+                        <h4 class="font-bold text-xl mb-3">Menu Bar</h4>
+                        <p class="text-sm text-on-surface-variant">Access quick toggles to Disable Zooom3, "Bring Window
+                            to Front", or "Reset to Defaults".</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Final CTA -->
+        <section class="py-24">
+            <div class="max-w-5xl mx-auto px-6">
+                <div class="bg-inverse-surface rounded-[2.5rem] p-12 md:p-24 text-center relative overflow-hidden">
+                    <div
+                        class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary via-blue-400 to-primary">
+                    </div>
+                    <div
+                        class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent">
+                    </div>
+                    <h2 class="text-4xl md:text-6xl font-extrabold text-inverse-on-surface mb-10 tracking-tight">Ready
+                        to accelerate <br class="hidden md:block" />your workflow?</h2>
+                    <a href="https://github.com/supagroova/Zooom3/releases"
+                        class="glossy-button inline-block px-12 py-5 text-on-primary rounded-2xl font-bold text-xl scale-95 hover:scale-100 active:scale-90 transition-all no-underline">
+                        Download Zooom3 for macOS
+                    </a>
+                    <p class="mt-8 text-on-surface-variant/40 text-sm font-medium">Requires macOS Monterey (12.0) or
+                        later.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer class="w-full py-12 border-t border-slate-200 bg-slate-50">
+        <div class="flex flex-col md:flex-row justify-between items-center max-w-7xl mx-auto px-8 gap-6">
+            <div class="flex flex-col items-center md:items-start">
+                <span class="font-bold text-slate-900 text-lg mb-2">Zooom3</span>
+                <p class="text-xs font-normal text-slate-500">© 2026 Lachlan Laycock. Built for macOS.</p>
+            </div>
+            <div class="flex gap-8">
+                <a class="text-xs font-normal text-slate-500 hover:text-slate-900 transition-colors" href="https://github.com/supagroova/Zooom3">GitHub</a>
+            </div>
         </div>
-        <div class="feature">
-            <h3>Fully Customizable</h3>
-            <p>Choose your own modifier keys, mouse buttons, and per-app settings from the menu bar.</p>
-        </div>
-    </section>
-
-    <footer>
-        <p>Zooom3 is free and open source. <a href="https://github.com/supagroova/Zooom3">View on GitHub</a></p>
     </footer>
 </body>
+
 </html>
